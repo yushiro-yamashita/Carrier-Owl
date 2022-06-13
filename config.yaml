@@ -1,11 +1,14 @@
 # arxivの学問領域の指定
-subject: 'cat:cs.*'
+subject: 'cat:physics.* OR cat:math.* OR cat:nlin.* OR cat:stat.* OR cat:eess.* OR cat:cs.*'
 
 # 検索キーワード
 keywords:
-        kaggle: 3
-        resnet: 3
-        anomaly detection: 1
+        plasma: 3
+        fusion: 3
+        simulation: 2
+        disruption: 5
+        eddy current: 5
+        tokamak: 2
 
 # 通知の閾値
-score_threshold: 0
+score_threshold: 5
