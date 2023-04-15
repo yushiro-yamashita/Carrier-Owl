@@ -91,11 +91,10 @@ def search_keyword(
                 temperature=0.25,
             )
             summary = response['choices'][0]['message']['content']
-            body = '\n'.join(summary)
 
             result = Result(
                     url=url, title=title_trans, abstract=abstract_trans,
-                    score=score, words=hit_keywords, summary=body)
+                    score=score, words=hit_keywords, summary=summary)
             results.append(result)
     
     # ブラウザ停止
