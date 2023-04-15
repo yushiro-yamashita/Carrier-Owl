@@ -68,15 +68,16 @@ def search_keyword(
             # abstract_trans = textwrap.wrap(abstract_trans, 40)  # 40行で改行
             # abstract_trans = '\n'.join(abstract_trans)
 
-            system = """あなたは物理学と情報学に精通した学者です。以下の制約条件と、入力された文章をもとに最高の要約を出力してください。
-            制約条件:
-            ・文章は簡潔にわかりやすく。
-            ・箇条書きで3行で出力。
-            ・1行あたりの文字数は80文字程度。
-            ・重要なキーワードは取り逃がさない。
-            ・要約した文章は日本語へ翻訳。
+            system = """You are an expert with a background in physics and informatics.
+            Please output the best summary based on the following constraints and the input text.
+            Constraints:
+            The text should be concise and easy to understand.
+            Bullet points should be output in 3 lines.
+            Each line should be approximately 50 words.
+            Do not miss any important keywords.
+            The summarized text should be translated into Japanese.
 
-            期待する出力フォーマット:
+            Expected output format:
             1.
             2.
             3.
