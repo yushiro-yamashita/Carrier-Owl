@@ -1,20 +1,23 @@
-from webdriver_manager.firefox import GeckoDriverManager
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.common.exceptions import NoSuchElementException
-import os
-import time
-import yaml
-import datetime
-import slackweb
 import argparse
+import datetime
+import os
 import textwrap
-from bs4 import BeautifulSoup
-import warnings
+import time
 import urllib.parse
+import warnings
 from dataclasses import dataclass
+
 import arxiv
+import openai
 import requests
+import slackweb
+import yaml
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.firefox.options import Options
+from webdriver_manager.firefox import GeckoDriverManager
+
 # setting
 warnings.filterwarnings('ignore')
 
@@ -24,6 +27,7 @@ class Result:
     url: str
     title: str
     abstract: str
+    summary: str
     words: list
     score: float = 0.0
 
@@ -63,9 +67,29 @@ def search_keyword(
             abstract_trans = get_translated_text('ja', 'en', abstract, driver)
             # abstract_trans = textwrap.wrap(abstract_trans, 40)  # 40行で改行
             # abstract_trans = '\n'.join(abstract_trans)
+
+            system = """与えられた論文の要点を3点のみでまとめ、以下のフォーマットで日本語で出力してください。```
+            タイトルの日本語訳
+            ・要点1
+            ・要点2
+            ・要点3
+            ```"""
+            text = f"title: {title}\nbody: {abstract}"
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {'role': 'system', 'content': system},
+                    {'role': 'user', 'content': text}
+                ],
+                temperature=0.25,
+            )
+            summary = response['choices'][0]['message']['content']
+            title, *body = summary.split('\n')
+            body = '\n'.join(body)
+
             result = Result(
                     url=url, title=title_trans, abstract=abstract_trans,
-                    score=score, words=hit_keywords)
+                    score=score, words=hit_keywords, summary=body)
             results.append(result)
     
     # ブラウザ停止
@@ -172,6 +196,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--slack_id', default=None)
     parser.add_argument('--line_token', default=None)
+    parser.add_argument('--openai_api', default=None)
     args = parser.parse_args()
 
     config = get_config()
@@ -193,6 +218,7 @@ def main():
 
     slack_id = os.getenv("SLACK_ID") or args.slack_id
     line_token = os.getenv("LINE_TOKEN") or args.line_token
+    openai.api_key = os.getenv("OPENAI_API") or args.openai_api
     notify(results, slack_id, line_token)
 
 
