@@ -122,6 +122,7 @@ def notify(results: list, slack_id: str, line_token: str) -> None:
     for result in sorted(results, reverse=True, key=lambda x: x.score):
         url = result.url
         title = result.title
+        summary = result.summary
         abstract = result.abstract
         word = result.words
         score = result.score
@@ -130,6 +131,7 @@ def notify(results: list, slack_id: str, line_token: str) -> None:
                f'\n hit keywords: `{word}`'\
                f'\n url: {url}'\
                f'\n title:    {title}'\
+               f'\n summary:    {summary}'\
                f'\n abstract:'\
                f'\n \t {abstract}'\
                f'\n {star}'
