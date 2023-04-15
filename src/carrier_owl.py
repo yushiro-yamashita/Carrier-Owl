@@ -68,12 +68,19 @@ def search_keyword(
             # abstract_trans = textwrap.wrap(abstract_trans, 40)  # 40行で改行
             # abstract_trans = '\n'.join(abstract_trans)
 
-            system = """与えられた論文の要点を3点のみでまとめ、以下のフォーマットで日本語で出力してください。```
-            タイトルの日本語訳
-            ・要点1
-            ・要点2
-            ・要点3
-            ```"""
+            system = """あなたは物理学と情報学に精通した学者です。以下の制約条件と、入力された文章をもとに最高の要約を出力してください。
+            制約条件:
+            ・文章は簡潔にわかりやすく。
+            ・箇条書きで3行で出力。
+            ・1行あたりの文字数は80文字程度。
+            ・重要なキーワードは取り逃がさない。
+            ・要約した文章は日本語へ翻訳。
+
+            期待する出力フォーマット:
+            1.
+            2.
+            3.
+            """
             text = f"title: {title}\nbody: {abstract}"
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
@@ -84,8 +91,7 @@ def search_keyword(
                 temperature=0.25,
             )
             summary = response['choices'][0]['message']['content']
-            title, *body = summary.split('\n')
-            body = '\n'.join(body)
+            body = '\n'.join(summary)
 
             result = Result(
                     url=url, title=title_trans, abstract=abstract_trans,
@@ -131,7 +137,7 @@ def notify(results: list, slack_id: str, line_token: str) -> None:
                f'\n hit keywords: `{word}`'\
                f'\n url: {url}'\
                f'\n title:    {title}'\
-               f'\n summary:    {summary}'\
+               f'\n summary:\n{summary}\n'\
                f'\n abstract:'\
                f'\n \t {abstract}'\
                f'\n {star}'
