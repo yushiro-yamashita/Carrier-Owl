@@ -6,9 +6,12 @@ keywords:
         plasma: 3
         fusion: 3
         simulation: 2
+        tokamak: 5
         disruption: 5
         eddy current: 5
-        tokamak: 2
+        field line tracing: 5
+        resonant magnetic perturbation: 5
+        resistive wall mode: 5
 
 # 通知の閾値
 score_threshold: 5
