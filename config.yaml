@@ -10,8 +10,11 @@ keywords:
         disruption: 5
         eddy current: 5
         field line tracing: 5
-        resonant magnetic perturbation: 5
-        resistive wall mode: 5
+        Resonant Magnetic Perturbation: 5
+        Resistive Wall Mode: 5
+        ITER: 5
+        JT-60SA: 5
+        DEMO: 3
 
 # 通知の閾値
 score_threshold: 5
