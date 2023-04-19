@@ -7,6 +7,7 @@ import urllib.parse
 import warnings
 from dataclasses import dataclass
 
+
 import arxiv
 import openai
 import requests
@@ -65,9 +66,8 @@ def search_keyword(
             title_trans = get_translated_text('ja', 'en', title, driver)
             abstract = abstract.replace('\n', '')
             abstract_trans = get_translated_text('ja', 'en', abstract, driver)
-            # abstract_trans = textwrap.wrap(abstract_trans, 40)  # 40行で改行
-            # abstract_trans = '\n'.join(abstract_trans)
 
+            # ChatGPTによる翻訳
             system = """You are an expert with a background in physics and informatics.
             Please output the best summary based on the following constraints and the input text.
             Constraints:
@@ -92,6 +92,7 @@ def search_keyword(
                 temperature=0.25,
             )
             summary = response['choices'][0]['message']['content']
+            sleep(20)
 
             result = Result(
                     url=url, title=title_trans, abstract=abstract_trans,
