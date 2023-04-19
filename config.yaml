@@ -12,9 +12,9 @@ keywords:
         field line tracing: 5
         Resonant Magnetic Perturbation: 5
         Resistive Wall Mode: 5
-        ITER: 5
+        ITER: 2
         JT-60SA: 5
-        DEMO: 3
+        DEMO: 2
 
 # 通知の閾値
 score_threshold: 5
