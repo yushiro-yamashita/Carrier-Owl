@@ -2,7 +2,7 @@ import argparse
 import datetime
 import os
 import textwrap
-import time
+from time import sleep
 import urllib.parse
 import warnings
 from dataclasses import dataclass
