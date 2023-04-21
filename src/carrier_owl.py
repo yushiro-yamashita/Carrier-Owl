@@ -96,7 +96,7 @@ def search_keyword(
                 summary = response['choices'][0]['message']['content']
             except:
                 summary = ""
-            sleep(20)
+            sleep(30)
 
             result = Result(
                     url=url, title=title_trans, abstract=abstract_trans,
