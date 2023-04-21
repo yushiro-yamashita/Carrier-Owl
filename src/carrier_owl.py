@@ -57,6 +57,22 @@ def search_keyword(
     # ブラウザーを起動
     driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), options=options)
     
+    # ChatGPTによる翻訳
+    system = """You are an expert with a background in physics and informatics.
+    Please output the best summary based on the following constraints and the input text.
+    Constraints:
+    The text should be concise and easy to understand.
+    Bullet points should be output in 3 lines.
+    Each line should be approximately 50 words.
+    Do not miss any important keywords.
+    The summarized text should be translated into Japanese.
+
+    Expected output format:
+    1.
+    2.
+    3.
+    """
+    
     for article in articles:
         url = article['arxiv_url']
         title = article['title']
@@ -66,32 +82,20 @@ def search_keyword(
             title_trans = get_translated_text('ja', 'en', title, driver)
             abstract = abstract.replace('\n', '')
             abstract_trans = get_translated_text('ja', 'en', abstract, driver)
-
-            # ChatGPTによる翻訳
-            system = """You are an expert with a background in physics and informatics.
-            Please output the best summary based on the following constraints and the input text.
-            Constraints:
-            The text should be concise and easy to understand.
-            Bullet points should be output in 3 lines.
-            Each line should be approximately 50 words.
-            Do not miss any important keywords.
-            The summarized text should be translated into Japanese.
-
-            Expected output format:
-            1.
-            2.
-            3.
-            """
+            
             text = f"title: {title}\nbody: {abstract}"
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {'role': 'system', 'content': system},
-                    {'role': 'user', 'content': text}
-                ],
-                temperature=0.25,
-            )
-            summary = response['choices'][0]['message']['content']
+            try:
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {'role': 'system', 'content': system},
+                        {'role': 'user', 'content': text}
+                    ],
+                    temperature=0.25,
+                )
+                summary = response['choices'][0]['message']['content']
+            except:
+                summary = ""
             sleep(20)
 
             result = Result(
