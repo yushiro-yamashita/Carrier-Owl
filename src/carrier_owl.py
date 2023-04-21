@@ -2,7 +2,7 @@ import argparse
 import datetime
 import os
 import textwrap
-from time import sleep
+import time
 import urllib.parse
 import warnings
 from dataclasses import dataclass
@@ -96,7 +96,7 @@ def search_keyword(
                 summary = response['choices'][0]['message']['content']
             except:
                 summary = ""
-            sleep(30)
+            time.sleep(30)
 
             result = Result(
                     url=url, title=title_trans, abstract=abstract_trans,
