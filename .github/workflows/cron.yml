@@ -35,8 +35,7 @@ jobs:
         with:
           path: /home/runner/.cache/pypoetry
           key: ${{ runner.os }}-${{ github.job }}-packages-${{ hashFiles('**/poetry.lock') }}
-          restore-keys:
-            ${{ runner.os }}-${{ github.job }}-packages-
+          restore-keys: ${{ runner.os }}-${{ github.job }}-packages-
 
       - name: Setup Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v4
@@ -67,16 +66,14 @@ jobs:
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-        restore-keys:
-              ${{ runner.os }}-build-${{ env.cache-name }}-
+          restore-keys: ${{ runner.os }}-build-${{ env.cache-name }}-
 
       - name: Install marp-cli
         if: steps.node_modules_cache_id.outputs.cache-hit != 'true'
         run: npm install -g @marp-team/marp-cli
           
       - name: Run owl
-        run:
-          poetry run python src/slide_owl.py
+        run: poetry run python src/slide_owl.py
         env:
           SLACK_ID: ${{ secrets.SLACK_ID }}
           OPENAI_API: ${{ secrets.OPENAI_API }}
