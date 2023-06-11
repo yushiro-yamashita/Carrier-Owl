@@ -23,10 +23,12 @@ jobs:
       - name: install dependencies
         run: poetry install
 
-      - name: Setup marp
+      - name: Setup node.js
         uses: actions/setup-node@v3
         with:
           node-version: 14
+          
+      - name: Install marp
         run: npx @marp-team/marp-cli
 
       - name: Run owl
