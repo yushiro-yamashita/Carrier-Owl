@@ -127,7 +127,7 @@ def make_md(f, dir_path, summary_dict):
         
 def convert_md_to_pdf(md_file):
     output = md_file.parent / f"{md_file.stem}_slide.pdf"
-    cmd = f"marp --pdf --html --allow-local-files {str(md_file)} -o {str(output)} --theme-set marp.css"
+    cmd = f"npx @marp-team/marp-cli --pdf --html --allow-local-files {str(md_file)} -o {str(output)} --theme-set marp.css"
     run(cmd, shell=True)
     return output
 
