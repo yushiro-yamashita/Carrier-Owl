@@ -17,6 +17,7 @@ import yaml
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.firefox.service import Service
 from pathlib import Path
 
 # setting
@@ -87,8 +88,7 @@ def search_keyword(
         ):
     options = webdriver.FirefoxOptions()
     options.headless = True
-    driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), options=options)
-    
+    driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
     results = []
     for article in articles:
         abstract = article.summary.replace("\n", " ")
