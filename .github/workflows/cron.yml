@@ -61,9 +61,10 @@ jobs:
       - name: Cache node_modules
         uses: actions/cache@v3
         id: node_modules_cache_id
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: ${{ runner.os }}-node-
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node-
 
       # - name: Install marp-cli
       #   if: steps.node_modules_cache_id.outputs.cache-hit != 'true'
