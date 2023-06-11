@@ -43,7 +43,7 @@ BASE_DIR=Path("./files")
 CHANNEL_ID = "C03KGQE0FT6"
 
 
-def calc_score(abst: str, keywords: dict) -> tuple[float, list]:
+def calc_score(abst: str, keywords: dict):
     sum_score = 0.0
     hit_kwd_list = []
 
@@ -85,7 +85,7 @@ def get_translated_text(from_lang: str, to_lang: str, from_text: str, driver) ->
 
 def search_keyword(
         articles: list, keywords: dict, score_threshold: float
-        ) -> list:
+        ):
     options = Options()
     options.add_argument("--headless")
     driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), options=options)
@@ -210,7 +210,7 @@ def notify(results: list, slack_token: str) -> None:
                 print(e)
         send2app(text, slack_token, file)
 
-def get_config() -> dict:
+def get_config():
     file_abs_path = os.path.abspath(__file__)
     file_dir = os.path.dirname(file_abs_path)
     config_path = f"{file_dir}/../config.yaml"
