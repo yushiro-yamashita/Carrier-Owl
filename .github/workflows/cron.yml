@@ -13,6 +13,7 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    working-directory: ./frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -61,8 +62,21 @@ jobs:
           cache: 'npm'
           cache-dependency-path: /home/runner/.cache/npm
 
-      - name: Setup marp-cli
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        id: node_modules_cache_id
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+      
+      - name: Install marp-cli
+        if: ${{ steps.node_modules_cache_id.outputs.cache-hit != 'true' }}
         run: npm install -g @marp-team/marp-cli
+
+      # - name: Setup marp-cli
+      #   run: npm install -g @marp-team/marp-cli
           
       - name: Run owl
         run:
