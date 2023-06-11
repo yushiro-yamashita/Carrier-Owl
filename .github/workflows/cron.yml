@@ -29,7 +29,7 @@ jobs:
           node-version: 14
 
       - name: Setup marp-cli
-          run: npm install @marp-team/marp-cli
+        run: npm install @marp-team/marp-cli
           
       - name: Setup FireFox
         uses: ueokande/setup-firefox@latest
