@@ -7,7 +7,6 @@ import warnings
 from dataclasses import dataclass
 
 from make_slide import make_slides
-
 import arxiv
 import openai
 from slack_sdk import WebClient
@@ -18,6 +17,7 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.common.by import By
 from pathlib import Path
 
 # setting
@@ -57,7 +57,8 @@ def calc_score(abst: str, keywords: dict):
 
 def get_text_from_driver(driver) -> str:
     try:
-        elem = driver.find_element_by_class_name("lmt__translations_as_text__text_btn")
+        # elem = driver.find_element_by_class_name("lmt__translations_as_text__text_btn")
+        elem = driver.find_element(by=By.CLASS_NAME, value="lmt__translations_as_text__text_btn")
     except NoSuchElementException as e:
         return None
     text = elem.get_attribute("innerHTML")
