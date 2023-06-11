@@ -1,6 +1,13 @@
 import fitz
 from subprocess import run
 
+def period_newline(text):
+    if "。" in text:
+        text = text.replace("。", "。\n")
+    else:
+        text = text.replace(". ", ".\n")
+    return text
+
 def recoverpix(doc, item):
     xref = item[0]  # xref of PDF image
     smask = item[1]  # xref of its /SMask
@@ -87,47 +94,55 @@ def extract_images_from_pdf(fname, imgdir, min_width=400, min_height=400, relsiz
 
 
 def make_md(f, dir_path, summary_dict):
-    f.write("\n---\n")
-    f.write("<!-- _class: title -->\n")
+    f.write("\n---\n\n")
     f.write(f'# {summary_dict["title_jp"]}\n')
     f.write(f'{summary_dict["title"]}\n')
     f.write(f'[{summary_dict["year"]}] {summary_dict["keywords"]} {summary_dict["entry_id"]}\n\n') 
-    f.write(f'__課題__  {summary_dict["problem"]}\n\n')
-    f.write(f'__手法__  {summary_dict["method"]}\n\n')
-    f.write(f'__結果__  {summary_dict["result"]}\n\n')
-    f.write("---\n")
-    f.write("<!-- _class: info -->\n") 
-    f.write('<span style="font-size: 60%;">\n')
-    f.write(summary_dict["abst_jp"].replace("。", "。<br>"))
-    f.write("\n</span>")
-    f.write("\n\n")
-    f.write("---\n")
-    f.write("<!-- _class: info -->\n") 
-    f.write('<span style="font-size: 60%;">\n')
-    f.write(summary_dict["abstract"].replace(". ", ".<br>"))
-    f.write("\n</span>")
-    f.write("\n\n")
+    f.write(f'__課題__\n{period_newline(summary_dict["problem"])}\n\n')
+    f.write(f'__手法__\n{period_newline(summary_dict["method"])}\n\n')
+    f.write(f'__結果__\n{period_newline(summary_dict["result"])}\n\n')
+    f.write("\n---\n\n")
+    f.write('<!-- class: abstract -->\n')
+    f.write(period_newline(summary_dict["abst_jp"]))
+    f.write("\n---\n\n")
+    f.write(period_newline(summary_dict["abstract"]))
+    f.write("\n")
 
     pdf = summary_dict["pdf"]
     dir_path = dir_path
     
     _, _, image_list = extract_images_from_pdf(pdf, dir_path)
     images = [{"src":imgname, "pno":str(pno), "width":str(width), "height":str(height)} for imgname, pno, width, height in image_list]
+    while len(images) % 4 != 0:
+        images.append(None)
+    count=0
     for img in images:
-        width = int(img["width"])
-        height = int(img["height"])
-        x_ratio = (1600.0 * 0.7) / width
-        y_ratio = (900.0 * 0.7) / height
-        ratio = min(x_ratio, y_ratio)
-
-        f.write("\n---\n")
-        f.write("<!-- _class: info -->\n") 
-        f.write(f'![width:{int(ratio * width)}]({str(img["src"])})\n')
+        if count % 4 == 0:
+            f.write("\n---\n\n")
+            if count == 0:
+                f.write('<!-- class: images -->\n')
+            f.write("<table>\n")
+        if count % 2 == 0:
+            f.write("\t<tr>\n")
+        f.write("\t\t<td>\n")
+        if img is not None:
+            width = int(img["width"])
+            height = int(img["height"])
+            x_ratio = (1600 * 0.35) / width
+            y_ratio = (900 * 0.35) / height
+            ratio = min(x_ratio, y_ratio)
+            f.write(f'\t\t\t<p><img src="{str(img["src"])}" width="{int(ratio * width)}"></p>\n')
+        f.write("\t\t</td>\n")
+        if count % 2 == 1:
+            f.write("\t</tr>\n")
+        if count % 4 == 3:
+            f.write("</table>\n")
+        count += 1
 
         
 def convert_md_to_pdf(md_file):
     output = md_file.parent / f"{md_file.stem}_slide.pdf"
-    cmd = f"marp --pdf --html --allow-local-files {str(md_file)} -o {str(output)} --theme-set marp.css"
+    cmd = f"marp --pdf --html --theme marp.css --allow-local-files {str(md_file)} -o {str(output)}"
     run(cmd, shell=True)
     return output
 
@@ -135,13 +150,11 @@ def convert_md_to_pdf(md_file):
 def make_slides(dir_path, id, summary_dict):
     output = dir_path.resolve() / f"{id}.md"
     with open(output, "w", encoding="utf-8") as f:
-        f.write("---\n")
+        f.write("---\n\n")
         f.write("marp: true\n")
         f.write("theme: default\n")
         f.write("size: 16:9\n")
         f.write("paginate: true\n")
-        f.write('_class: ["cool-theme"]\n')
-        f.write("\n")
 
         make_md(f, dir_path, summary_dict)
     output = convert_md_to_pdf(output)

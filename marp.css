@@ -3,8 +3,30 @@
 @import 'default';
 
 section {
-    font-size: 24px;
-    font-family: "Noto serif JP", serif;
+    justify-content: start;
+    font-size: 20px;
+    font-family: "Noto sans JP", sans-serif;
+    padding: 30px;
+    overflow: visible;
   }
 
 p { line-height: 1.4 }
+
+section.abstract { font-family: "Noto serif JP", serif; }
+
+section.images {
+    margin: 0px;
+    padding: 0px;
+    text-align:center;
+}
+
+table {
+    display: table;
+    table-layout: fixed;
+    width: 1600px;
+    height: 900px;
+}
+
+td {
+    background-color: white;
+}
