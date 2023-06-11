@@ -59,6 +59,7 @@ jobs:
         with:
           node-version: latest
           cache: 'npm'
+          cache-dependency-path: /home/runner/.cache/npm
 
       - name: Setup marp-cli
         run: npm install -g @marp-team/marp-cli
