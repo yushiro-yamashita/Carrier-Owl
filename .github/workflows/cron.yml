@@ -27,10 +27,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 14
-          
-      - name: Install marp
-        run: npx @marp-team/marp-cli
-
+        
       - name: Run owl
         run:
           poetry run python src/slide_owl.py
