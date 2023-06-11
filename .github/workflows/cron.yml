@@ -26,10 +26,10 @@ jobs:
       - name: Setup node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: latest
 
-#       - name: Setup marp-cli
-#         run: npm install -g @marp-team/marp-cli
+      - name: Setup marp-cli
+        run: npm install -g @marp-team/marp-cli
           
       - name: Run owl
         run:
