@@ -61,16 +61,17 @@ jobs:
       - name: Cache node_modules
         uses: actions/cache@v3
         id: node_modules_cache_id
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-build-${{ env.cache-name }}-
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: ${{ runner.os }}-node-
 
+      # - name: Install marp-cli
+      #   if: steps.node_modules_cache_id.outputs.cache-hit != 'true'
+      #   run: npm install -g @marp-team/marp-cli
+        
       - name: Install marp-cli
         if: steps.node_modules_cache_id.outputs.cache-hit != 'true'
-        run: npm install -g @marp-team/marp-cli
+        run: npm ci
           
       - name: Run owl
         run: poetry run python src/slide_owl.py
