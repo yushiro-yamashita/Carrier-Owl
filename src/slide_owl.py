@@ -16,7 +16,6 @@ from io import BytesIO
 import yaml
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.firefox.options import Options
 from webdriver_manager.firefox import GeckoDriverManager
 from pathlib import Path
 
@@ -86,8 +85,8 @@ def get_translated_text(from_lang: str, to_lang: str, from_text: str, driver) ->
 def search_keyword(
         articles: list, keywords: dict, score_threshold: float
         ):
-    options = Options()
-    options.add_argument("--headless")
+    options = webdriver.FirefoxOptions()
+    options.headless = True
     driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), options=options)
     
     results = []
