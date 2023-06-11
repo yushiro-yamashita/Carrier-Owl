@@ -25,9 +25,9 @@ jobs:
           key: ${{ runner.os }}-python${{ env.PYTHON_VERSION }}-poetry${{ env.POETRY_VERSION }}
 
       - name: Set a path
-        run: |
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
         if: steps.poetry-cache.outputs.cache-hit == 'true'
+        run:
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Cache packages
         id: packages-cache
@@ -35,7 +35,7 @@ jobs:
         with:
           path: /home/runner/.cache/pypoetry
           key: ${{ runner.os }}-${{ github.job }}-packages-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
+          restore-keys:
             ${{ runner.os }}-${{ github.job }}-packages-
 
       - name: Setup Python ${{ env.PYTHON_VERSION }}
@@ -44,20 +44,20 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install poetry
-        run: |
+        if: steps.poetry-cache.outputs.cache-hit != 'true'
+        run:
           curl -sSL https://install.python-poetry.org | python3 - --version ${{ env.POETRY_VERSION }}
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-        if: steps.poetry-cache.outputs.cache-hit != 'true'
 
       - name: Resolve Dependencies
-        run: |
-          poetry install
         if: steps.packages-cache.outputs.cache-hit != 'true'
+        run: poetry install
 
       - name: Setup node.js
         uses: actions/setup-node@v3
         with:
           node-version: latest
+          cahce: 'npm'
 
       - name: Cache node_modules
         uses: actions/cache@v3
@@ -67,13 +67,12 @@ jobs:
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-      
-      - name: Install marp-cli
-        if: ${{ steps.node_modules_cache_id.outputs.cache-hit != 'true' }}
-        run: npm install -g @marp-team/marp-cli
+        restore-keys:
+              ${{ runner.os }}-build-${{ env.cache-name }}-
 
-      # - name: Setup marp-cli
-      #   run: npm install -g @marp-team/marp-cli
+      - name: Install marp-cli
+        if: steps.node_modules_cache_id.outputs.cache-hit != 'true'
+        run: npm install -g @marp-team/marp-cli
           
       - name: Run owl
         run:
