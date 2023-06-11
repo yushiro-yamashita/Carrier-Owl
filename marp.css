@@ -1,0 +1,10 @@
+/* @theme marp */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@200;400;700&family=Noto+Serif+JP:wght@200;400;700&display=swap");
+@import 'default';
+
+section {
+    font-size: 24px;
+    font-family: "Noto serif JP", serif;
+  }
+
+p { line-height: 1.4 }
