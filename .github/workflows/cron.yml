@@ -24,7 +24,7 @@ jobs:
           path: /home/runner/.local
           key: ${{ runner.os }}-python${{ env.PYTHON_VERSION }}-poetry${{ env.POETRY_VERSION }}
 
-      - name: Set a path
+      - name: Set a path for poetry
         if: steps.poetry-cache.outputs.cache-hit == 'true'
         run:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
@@ -66,11 +66,12 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: ${{ runner.os }}-node-
 
-      # - name: Install marp-cli
-      #   if: steps.node_modules_cache_id.outputs.cache-hit != 'true'
-      #   run: npm install -g @marp-team/marp-cli
+      - name: Set a path for node_modules
+        if: steps.poetry-cache.outputs.cache-hit == 'true'
+        run:
+          echo "$HOME/node_modules/.bin" >> $GITHUB_PATH
         
-      - name: Install marp-cli
+      - name: Install node_modules
         if: steps.node_modules_cache_id.outputs.cache-hit != 'true'
         run: npm ci
           
