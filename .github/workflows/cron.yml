@@ -1,3 +1,7 @@
+env:
+  PYTHON_VERSION: '3.10'
+  POETRY_VERSION: '1.5.1'
+
 name: Carrier Owl
 
 on:
@@ -5,28 +9,56 @@ on:
     # github actions のデフォルトの time zone が UTC なので、日本時間 - 9時間 した値を書く
     - cron:  '0 0 * * 0,3,4,5,6'
   workflow_dispatch:
-
+  
 jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Run image
-        uses: abatilo/actions-poetry@v2
+      - name: Cache poetry cache
+        id: poetry-cache
+        uses: actions/cache@v3
         with:
-          poetry-version: 1.5.1
+          path: /home/runner/.local
+          key: ${{ runner.os }}-python${{ env.PYTHON_VERSION }}-poetry${{ env.POETRY_VERSION }}
 
-      - name: install dependencies
-        run: poetry install
+      - name: Set a path
+        run: |
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        if: steps.poetry-cache.outputs.cache-hit == 'true'
+
+      - name: Cache packages
+        id: packages-cache
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/.cache/pypoetry
+          key: ${{ runner.os }}-${{ github.job }}-packages-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ github.job }}-packages-
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 - --version ${{ env.POETRY_VERSION }}
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        if: steps.poetry-cache.outputs.cache-hit != 'true'
+
+      - name: Resolve Dependencies
+        run: |
+          poetry install
+        if: steps.packages-cache.outputs.cache-hit != 'true'
 
       - name: Setup node.js
         uses: actions/setup-node@v3
         with:
           node-version: latest
+          cache: 'npm'
 
       - name: Setup marp-cli
         run: npm install -g @marp-team/marp-cli
@@ -39,3 +71,47 @@ jobs:
           OPENAI_API: ${{ secrets.OPENAI_API }}
 
 
+
+jobs:
+  sample_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cache poetry cache
+        id: poetry-cache
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/.local
+          key: ${{ runner.os }}-python${{ env.PYTHON_VERSION }}-poetry${{ env.POETRY_VERSION }}
+
+      - name: Set a path
+        run: |
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        if: steps.poetry-cache.outputs.cache-hit == 'true'
+
+      - name: Cache packages
+        id: packages-cache
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/.cache/pypoetry
+          key: ${{ runner.os }}-${{ github.job }}-packages-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ github.job }}-packages-
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 - --version ${{ env.POETRY_VERSION }}
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        if: steps.poetry-cache.outputs.cache-hit != 'true'
+
+      - name: Resolve Dependencies
+        run: |
+          poetry install
+        if: steps.packages-cache.outputs.cache-hit != 'true'
