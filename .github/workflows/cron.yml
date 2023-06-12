@@ -65,11 +65,6 @@ jobs:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: ${{ runner.os }}-node-
-
-      - name: Set a path for node_modules
-        if: steps.poetry-cache.outputs.cache-hit == 'true'
-        run:
-          echo "./node_modules/.bin" >> $GITHUB_PATH
         
       - name: Install node_modules
         if: steps.node_modules_cache_id.outputs.cache-hit != 'true'
