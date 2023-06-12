@@ -128,8 +128,8 @@ def make_md(f, dir_path, summary_dict):
         if img is not None:
             width = int(img["width"])
             height = int(img["height"])
-            x_ratio = (1600 * 0.3) / width
-            y_ratio = (900 * 0.3) / height
+            x_ratio = (1600 * 0.33) / width
+            y_ratio = (900 * 0.33) / height
             ratio = min(x_ratio, y_ratio)
             f.write(f'\t\t\t<p><img src="{str(img["src"])}" width="{int(ratio * width)}"></p>\n')
         f.write("\t\t</td>\n")

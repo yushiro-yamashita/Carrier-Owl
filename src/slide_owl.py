@@ -231,13 +231,13 @@ def main():
     keywords = config["keywords"]
     score_threshold = float(config["score_threshold"])
 
-    day_before_yesterday = datetime.datetime.today() - datetime.timedelta(days=4)
+    day_before_yesterday = datetime.datetime.today() - datetime.timedelta(days=2)
     day_before_yesterday_str = day_before_yesterday.strftime("%Y%m%d")
     arxiv_query = f"({subject}) AND " \
                   f"submittedDate:" \
                   f"[{day_before_yesterday_str}000000 TO {day_before_yesterday_str}235959]"
     articles = arxiv.Search(query=arxiv_query,
-                           max_results=100,
+                           max_results=1000,
                            sort_by = arxiv.SortCriterion.SubmittedDate).results()
     articles = list(articles)
     openai.api_key = os.getenv("OPENAI_API") or args.openai_api
