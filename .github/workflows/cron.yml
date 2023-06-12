@@ -66,11 +66,10 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         
       - name: Install node_modules
-        if: steps.node_modules_cache_id.outputs.cache-hit != 'true'
         run: npm ci
           
       - name: Run owl
         run: poetry run python src/slide_owl.py
         env:
-          SLACK_ID: ${{ secrets.SLACK_ID }}
           OPENAI_API: ${{ secrets.OPENAI_API }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
