@@ -4,9 +4,9 @@ subject: 'cat:physics.* OR cat:math.* OR cat:nlin.* OR cat:stat.* OR cat:eess.* 
 # 検索キーワード
 keywords:
         plasma: 10
+        nuclear fusion: 10
         simulation: 3
         disruption: 3
-        fusion: 3
         field line tracing: 3
         tokamak: 5
         eddy current: 5
