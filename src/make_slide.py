@@ -48,7 +48,7 @@ def recoverpix(doc, item):
     return doc.extract_image(xref)
 
 
-def extract_images_from_pdf(fname, imgdir, min_width=400, min_height=400, relsize=0.05, abssize=2048, max_ratio=8, max_num=20):
+def extract_images_from_pdf(fname, imgdir, min_width=200, min_height=200, relsize=0.05, abssize=2048, max_ratio=8, max_num=20):
     """
     dimlimit = 0  # 100  # each image side must be greater than this
     relsize = 0  # 0.05  # image : image size ratio must be larger than this (5%)
