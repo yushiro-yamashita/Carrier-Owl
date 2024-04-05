@@ -44,8 +44,8 @@ jobs:
 
       - name: Install poetry
         if: steps.poetry-cache.outputs.cache-hit != 'true'
-        run:
-          curl -sSL https://install.python-poetry.org | python3 - --version ${{ env.POETRY_VERSION }};
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 - --version ${{ env.POETRY_VERSION }}
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Resolve Dependencies
@@ -66,7 +66,9 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         
       - name: Install node_modules
-        run: npm ci
+        run: |
+          npm audit fix
+          npm ci
           
       - name: Run owl
         run: poetry run python src/slide_owl.py
