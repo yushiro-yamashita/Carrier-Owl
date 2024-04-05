@@ -53,9 +53,9 @@ jobs:
         run: poetry install
 
       - name: Setup node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: "20"
           cache: 'npm'
 
       - name: Cache node_modules
