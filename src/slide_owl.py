@@ -88,7 +88,7 @@ def search_keyword(
         articles: list, keywords: dict, score_threshold: float
         ):
     options = webdriver.FirefoxOptions()
-    options.headless = True
+    options.add_argument("--headless")
     driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
     results = []
     for article in articles:
