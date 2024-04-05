@@ -215,7 +215,7 @@ def get_config():
     file_dir = os.path.dirname(file_abs_path)
     config_path = f"{file_dir}/../config.yaml"
     with open(config_path, "r", encoding="utf-8") as yml:
-        config = yaml.load(yml)
+        config = yaml.safe_load(yml)
     return config
 
 
