@@ -163,7 +163,7 @@ def get_summary(result, client):
     res = result.res
     if result.arxiv:
         title = res.title.replace("\n ", "")
-        body = result.summary.replace("\n", " ")
+        body = res.summary.replace("\n", " ")
     else:
         title = res["title"].replace("\n ", "")
         body = res["summary"].replace("\n", " ")
