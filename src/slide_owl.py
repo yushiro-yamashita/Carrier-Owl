@@ -63,7 +63,6 @@ def get_text_from_driver(driver) -> str:
         print(e)
         return None
     text = elem.get_attribute("textContent")
-    print(text)
     return text
 
 def get_translated_text(from_lang: str, to_lang: str, from_text: str, driver) -> str:
@@ -112,8 +111,7 @@ def get_summary(result, client):
     text = f"title: {title}\nbody: {body}"
     response = client.chat.completions.create(
     # model="gpt-3.5-turbo",
-    # model="gpt-4-vision-preview",
-    model="gpt-4-1106-preview",
+    model="gpt-4-turbo-preview",
     messages=[
         {"role": "system", "content": PROMPT},
         {"role": "user", "content": text}
