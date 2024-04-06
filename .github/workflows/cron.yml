@@ -7,7 +7,7 @@ name: Carrier Owl
 on:
   schedule:
     # github actions のデフォルトの time zone が UTC なので、日本時間 - 9時間 した値を書く
-    - cron:  '0 0 * * 0,3,4,5,6'
+    - cron:  '0 22 * * *'
   workflow_dispatch:
   
 jobs:
@@ -16,6 +16,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Install pandoc
+        uses: pandoc/actions/setup@v1
+        with:
+          version: 3.1
 
       - name: Cache poetry
         id: poetry-cache

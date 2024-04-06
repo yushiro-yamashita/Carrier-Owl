@@ -20,6 +20,9 @@ from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
 from pathlib import Path
+import feedparser
+import urllib.request
+import datetime
 
 # setting
 warnings.filterwarnings("ignore")
@@ -28,7 +31,8 @@ warnings.filterwarnings("ignore")
 class Result:
     score: float = 0.0
     hit_keywords: list = None
-    arxiv_result: dict = None
+    arxiv: bool = True
+    res: dict = None
     abst_jp: str = None
 
 
@@ -98,16 +102,72 @@ def search_keyword(
             continue
         abstract_trans = get_translated_text("en", "ja", abstract, driver)
 
-        result = Result(score=score, hit_keywords=hit_keywords, arxiv_result=article, abst_jp=abstract_trans)
+        result = Result(score=score, hit_keywords=hit_keywords, arxiv=True, res=article, abst_jp=abstract_trans)
         results.append(result)
 
     driver.quit()
     return results
 
 
+def ecs_login(driver, url, ecs_info):
+    driver.get(url)
+    try:
+        driver.find_element(by=By.XPATH, value='//*[@id="IdButton1"]/input[3]').click()
+        driver.find_element(by=By.XPATH, value='//*[@id="username"]').send_keys(ecs_info[0])
+        driver.find_element(by=By.XPATH, value='//*[@id="password"]').send_keys(ecs_info[1])
+        driver.find_element(by=By.XPATH, value='/html/body/div/div/div/div/form/div[4]/button').click()
+        try:
+            driver.find_element(by=By.XPATH, value='//input[@type="submit"]').click()
+        except:
+            pass
+    except:
+        pass
+    time.sleep(2)
+
+
+def parse_iop_rss(rss_url_list: list, keywords: dict, score_threshold: float, ecs_info: list[str, str]):
+    options = webdriver.FirefoxOptions()
+    options.add_argument("-headless")
+    firefox_profile = webdriver.firefox.firefox_profile.FirefoxProfile()
+    firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
+    options.profile = firefox_profile
+    driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
+    driver.implicitly_wait(10)
+    results = []
+    today = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+
+    for i, url in enumerate(rss_url_list):
+        if i==0:
+            ecs_login(driver, url, ecs_info)
+        else:
+            driver.get(url)
+            time.sleep(2)
+
+        d = feedparser.parse(driver.page_source)
+        for entry in d["entries"]:
+            if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != today:
+                continue
+            abstract = entry["summary"].replace("\n", " ")
+            score, hit_keywords = calc_score(abstract, keywords)
+            if score < score_threshold:
+                continue
+            abstract_trans = get_translated_text("en", "ja", abstract, driver)
+            result = Result(score=score, hit_keywords=hit_keywords, arxiv=False, res=entry, abst_jp=abstract_trans)
+            results.append(result)
+
+    driver.quit()
+    return results
+
+
 def get_summary(result, client):
-    title = result.title.replace("\n ", "")
-    body = result.summary.replace("\n", " ")
+    res = result.res
+    if result.arxiv:
+        title = res.title.replace("\n ", "")
+        body = result.summary.replace("\n", " ")
+    else:
+        title = res["title"].replace("\n ", "")
+        body = res["summary"].replace("\n", " ")
+
     text = f"title: {title}\nbody: {body}"
     response = client.chat.completions.create(
     # model="gpt-3.5-turbo",
@@ -130,19 +190,30 @@ def get_summary(result, client):
             summary_dict["method"] = b[3:].lstrip()
         if b.startswith("結果"):
             summary_dict["result"] = b[3:].lstrip()
-        summary_dict["title"]= result.title
 
-    summary_dict["id"] = result.get_short_id().replace(".", "_")
-    summary_dict["date"] = result.published.strftime("%Y-%m-%d %H:%M:%S")
-    summary_dict["authors"] = result.authors
-    summary_dict["year"] = str(result.published.year)
-    summary_dict["entry_id"] = str(result.entry_id)
-    summary_dict["primary_category"] = str(result.primary_category)
-    summary_dict["categories"] = result.categories
-    summary_dict["journal_ref"] = result.journal_ref
-    summary_dict["pdf_url"] = result.pdf_url
-    summary_dict["doi"]= result.doi
-    summary_dict["abstract"] = body
+    if result.arxiv:
+        summary_dict["title"]= res.title
+        summary_dict["id"] = res.get_short_id().replace(".", "_")
+        summary_dict["date"] = res.published.strftime("%Y-%m-%d %H:%M:%S")
+        summary_dict["authors"] = res.authors
+        summary_dict["year"] = str(res.published.year)
+        summary_dict["entry_id"] = str(res.entry_id)
+        summary_dict["primary_category"] = str(res.primary_category)
+        summary_dict["categories"] = res.categories
+        summary_dict["journal_ref"] = res.journal_ref
+        summary_dict["pdf_url"] = res.pdf_url
+        summary_dict["doi"]= res.doi
+        summary_dict["abstract"] = body
+    else:
+        summary_dict["title"]= res["title"]
+        summary_dict["id"] = Path(res["id"]).parts[-2:].replace("/", "_")
+        summary_dict["date"] = time.strftime("%Y-%m-%d %H:%M:%S", res["updated_parsed"])
+        summary_dict["authors"] = res["authors"]
+        summary_dict["year"] = str(res["updated_parsed"].tm_year)
+        summary_dict["entry_id"] = str(res["link"])
+        summary_dict["pdf_url"] = res["iop_pdf"]
+        summary_dict["doi"]= res["prism_doi"]
+        summary_dict["abstract"] = body
     return summary_dict
 
 
@@ -178,15 +249,19 @@ def notify(results: list, slack_token: str, openai_api: str) -> None:
         client = None
 
     for result in sorted(results, reverse=True, key=lambda x: x.score):
-        ar = result.arxiv_result
-        url = ar.entry_id
-        title = ar.title.replace("\n ", "")
+        if result.arxiv:
+            url = result.res.entry_id
+            title = result.res.title.replace("\n ", "")
+            abstract_en = result.res.summary.replace("\n", " ").replace(". ", ". \n>")
+        else:
+            url = result.res["link"]
+            title = result.res["title"].replace("\n ", "")
+            abstract_en = result.res.summary.replace("\n", " ").replace(". ", ". \n>")
         word = result.hit_keywords
         score = result.score
         abstract = result.abst_jp.replace("。", "。\n>")
         if abstract[-1] == "\n>":
             abstract = abstract.rstrip("\n>")
-        abstract_en = ar.summary.replace("\n", " ").replace(". ", ". \n>")
 
         text = f"\n Score: `{score}`"\
                f"\n Hit keywords: `{word}`"\
@@ -201,13 +276,17 @@ def notify(results: list, slack_token: str, openai_api: str) -> None:
         file = None
         if client:
             try:
-                summary_dict = get_summary(ar, client)
+                summary_dict = get_summary(result, client)
                 summary_dict["abst_jp"] = result.abst_jp
                 id = summary_dict["id"]
                 dirpath = BASE_DIR/id
                 dirpath.mkdir(parents=True, exist_ok=True)
                 pdf = f"{id}.pdf"
-                ar.download_pdf(dirpath=str(dirpath), filename=pdf)
+                if result.arxiv:
+                    result.res.download_pdf(dirpath=str(dirpath), filename=pdf)
+                else:
+                    urllib.request.urlretrieve(result.res["pdf_url"], str(dirpath/pdf))
+
                 summary_dict["pdf"] = str(dirpath/pdf)
                 file = make_slides(dirpath, id, summary_dict)
             except Exception as e:
@@ -228,12 +307,17 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--slack_token", default=None)
     parser.add_argument("--openai_api", default=None)
+    parser.add_argument("--ecs_id", default=None)
+    parser.add_argument("--ecs_password", default=None)
     args = parser.parse_args()
 
     config = get_config()
     subject = config["subject"]
     keywords = config["keywords"]
     score_threshold = float(config["score_threshold"])
+    iop_rss_url = config.get("iop_rss_url", [])
+    ecs_id = os.getenv("ECS_ID") or args.ecs_id
+    ecs_pass = os.getenv("ECS_PASSWORD") or args.ecs_password
 
     day_before_yesterday = datetime.datetime.today() - datetime.timedelta(days=2)
     day_before_yesterday_str = day_before_yesterday.strftime("%Y%m%d")
@@ -245,6 +329,8 @@ def main():
                            sort_by = arxiv.SortCriterion.SubmittedDate).results()
     articles = list(articles)
     results = search_keyword(articles, keywords, score_threshold)
+    results_iop = parse_iop_rss(iop_rss_url, keywords, score_threshold, ecs_info=[ecs_id, ecs_pass])
+    results.extend(results_iop)
     slack_token = os.getenv("SLACK_BOT_TOKEN") or args.slack_token
     openai_api = os.getenv("OPENAI_API") or args.openai_api
     notify(results[:1], slack_token, openai_api)

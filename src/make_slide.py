@@ -1,4 +1,5 @@
 import fitz
+import pandas as pd
 from subprocess import run
 
 def period_newline(text):
@@ -49,7 +50,7 @@ def recoverpix(doc, item):
     return doc.extract_image(xref)
 
 
-def extract_images_from_pdf(fname, imgdir, min_width=200, min_height=200, relsize=0.05, abssize=2048, max_ratio=8, max_num=20):
+def extract_images_from_pdf(fname, imgdir, min_width=200, min_height=200, relsize=0.05, abssize=2048, max_ratio=8, max_num=50):
     """
     dimlimit = 0  # 100  # each image side must be greater than this
     relsize = 0  # 0.05  # image : image size ratio must be larger than this (5%)
@@ -81,7 +82,7 @@ def extract_images_from_pdf(fname, imgdir, min_width=200, min_height=200, relsiz
 
             if len(imgdata) <= abssize:
                 continue
-            if width / height > max_ratio or height/width > max_ratio:
+            if width/height > max_ratio or height/width > max_ratio:
                 continue
 
             imgname = f'img{pno+1:02}_{xref:05}.{image["ext"]}'
@@ -92,6 +93,22 @@ def extract_images_from_pdf(fname, imgdir, min_width=200, min_height=200, relsiz
 
     imglist = list(set(imglist))
     return xreflist, imglist, images
+
+
+def extract_tables_from_pdf(fname, max_num=50):
+    doc = fitz.open(fname)
+    page_count = doc.page_count  # number of pages
+
+    table_list = []
+    for pno in range(page_count):
+        tabs = doc[pno].find_tables()
+        for table in tabs:
+            tab = table.extract()
+            columns = tab[0]
+            data_rows = tab[1:]
+            table_list.append(pd.DataFrame(data_rows, columns=columns).to_html())
+            # table_list.append(pd.DataFrame(data_rows, columns=columns).to_markdown(tablefmt="grid"))
+    return table_list
 
 
 def make_md(f, dir_path, summary_dict):
@@ -110,8 +127,6 @@ def make_md(f, dir_path, summary_dict):
     f.write("\n")
 
     pdf = summary_dict["pdf"]
-    dir_path = dir_path
-    
     _, _, image_list = extract_images_from_pdf(pdf, dir_path)
     images = [{"src":imgname, "pno":str(pno), "width":str(width), "height":str(height)} for imgname, pno, width, height in image_list]
     while len(images) % 4 != 0:
@@ -139,6 +154,29 @@ def make_md(f, dir_path, summary_dict):
         if count % 4 == 3:
             f.write("</table>\n")
         count += 1
+
+    try:
+        tables = extract_tables_from_pdf(pdf)
+        count=0
+        for table in tables:
+            if count % 4 == 0:
+                f.write("\n---\n\n")
+                if count == 0:
+                    f.write('<!-- class: images -->\n')
+                f.write("<table>\n")
+            if count % 2 == 0:
+                f.write("\t<tr>\n")
+            f.write("\t\t<td>\n")
+            if table is not None:
+                f.write(f'\t\t\t<p><img src="{str(img["src"])}" width="{int(ratio * width)}"></p>\n')
+            f.write("\t\t</td>\n")
+            if count % 2 == 1:
+                f.write("\t</tr>\n")
+            if count % 4 == 3:
+                f.write("</table>\n")
+            count += 1
+    except Exception as e:
+        print(e)
 
         
 def convert_md_to_pdf(md_file):

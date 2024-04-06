@@ -19,3 +19,8 @@ keywords:
 
 # 通知の閾値
 score_threshold: 10
+
+iop_rss_url:
+ - https://iopscience-iop-org.kyoto-u.idm.oclc.org/journal/rss/0741-3335
+ - https://iopscience-iop-org.kyoto-u.idm.oclc.org/journal/rss/0029-5515
+ - https://iopscience-iop-org.kyoto-u.idm.oclc.org/journal/rss/0963-0252
