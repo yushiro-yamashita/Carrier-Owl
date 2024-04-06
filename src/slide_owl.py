@@ -134,7 +134,7 @@ def parse_iop_rss(rss_url_list: list, keywords: dict, score_threshold: float, ec
     driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
     driver.implicitly_wait(10)
     results = []
-    today = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
     for i, url in enumerate(rss_url_list):
         if i==0:
@@ -145,8 +145,8 @@ def parse_iop_rss(rss_url_list: list, keywords: dict, score_threshold: float, ec
 
         d = feedparser.parse(driver.page_source)
         for entry in d["entries"]:
-            if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != today:
-                continue
+            # if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != yesterday:
+            #     continue
             abstract = entry["summary"].replace("\n", " ")
             score, hit_keywords = calc_score(abstract, keywords)
             if score < score_threshold:
