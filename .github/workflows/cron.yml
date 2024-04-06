@@ -80,3 +80,5 @@ jobs:
         env:
           OPENAI_API: ${{ secrets.OPENAI_API }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          ECS_ID: ${{ secrets.ECS_ID }}
+          ECS_PASSWORD: ${{ secrets.ECD_PASSWORD }}
