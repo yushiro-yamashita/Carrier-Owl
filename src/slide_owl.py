@@ -56,13 +56,20 @@ def calc_score(abst: str, keywords: dict):
 
 
 def get_text_from_driver(driver) -> str:
+    # try:
+    #     elem = driver.find_element(by=By.CLASS_NAME, value="lmt__translations_as_text__text_btn")
+    # except NoSuchElementException as e:
+    #     print(e)
+    #     return None
+    # text = elem.get_attribute("innerHTML")
+
+    time.sleep(5)
     try:
-        # elem = driver.find_element_by_class_name("lmt__translations_as_text__text_btn")
-        elem = driver.find_element(by=By.CLASS_NAME, value="lmt__translations_as_text__text_btn")
+        elem = driver.find_element(by=By.XPATH, value="//div[@id='target-dummydiv']")
     except NoSuchElementException as e:
         print(e)
         return None
-    text = elem.get_attribute("innerHTML")
+    text = elem.get_attribute("textContent")
     return text
 
 
