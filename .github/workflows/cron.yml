@@ -82,3 +82,4 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           ECS_ID: ${{ secrets.ECS_ID }}
           ECS_PASSWORD: ${{ secrets.ECD_PASSWORD }}
+          
