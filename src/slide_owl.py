@@ -145,8 +145,8 @@ def parse_iop_rss(rss_url_list: list, keywords: dict, score_threshold: float, ec
 
         d = feedparser.parse(driver.page_source)
         for entry in d["entries"]:
-            # if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != yesterday:
-            #     continue
+            if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != yesterday:
+                continue
             abstract = entry["summary"].replace("\n", " ")
             score, hit_keywords = calc_score(abstract, keywords)
             if score < score_threshold:
