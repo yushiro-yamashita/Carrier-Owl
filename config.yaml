@@ -14,6 +14,8 @@ keywords:
         Resonant Magnetic Perturbation: 5
         Resistive Wall Mode: 5
         JT-60SA: 5
+        VMEC: 5
+        adjoint method: 5
 
 # 通知の閾値
 score_threshold: 10

@@ -111,8 +111,9 @@ def get_summary(result):
     body = result.summary.replace("\n", " ")
     text = f"title: {title}\nbody: {body}"
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        # model="gpt-4",
+        # model="gpt-3.5-turbo",
+        # model="gpt-4-vision-preview",
+        model="gpt-4-1106-preview",
         messages=[
             {"role": "system", "content": PROMPT},
             {"role": "user", "content": text}
