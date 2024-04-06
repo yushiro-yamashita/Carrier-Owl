@@ -8,7 +8,8 @@ from dataclasses import dataclass
 
 from make_slide import make_slides
 import arxiv
-import openai
+from openai import OpenAI
+
 from slack_sdk import WebClient
 from io import BytesIO
 
@@ -56,13 +57,6 @@ def calc_score(abst: str, keywords: dict):
 
 
 def get_text_from_driver(driver) -> str:
-    # try:
-    #     elem = driver.find_element(by=By.CLASS_NAME, value="lmt__translations_as_text__text_btn")
-    # except NoSuchElementException as e:
-    #     print(e)
-    #     return None
-    # text = elem.get_attribute("innerHTML")
-
     try:
         elem = driver.find_element(by=By.XPATH, value='//*[@id="textareasContainer"]/div[3]/section/div[1]/d-textarea/div')
     except NoSuchElementException as e:
@@ -112,21 +106,20 @@ def search_keyword(
     return results
 
 
-def get_summary(result):
+def get_summary(result, client):
     title = result.title.replace("\n ", "")
     body = result.summary.replace("\n", " ")
     text = f"title: {title}\nbody: {body}"
-    response = openai.ChatCompletion.create(
-        # model="gpt-3.5-turbo",
-        # model="gpt-4-vision-preview",
-        model="gpt-4-1106-preview",
-        messages=[
-            {"role": "system", "content": PROMPT},
-            {"role": "user", "content": text}
-        ],
-        temperature=0.25,
-    )
-    summary = response["choices"][0]["message"]["content"]
+    response = client.chat.completions.create(
+    # model="gpt-3.5-turbo",
+    # model="gpt-4-vision-preview",
+    model="gpt-4-1106-preview",
+    messages=[
+        {"role": "system", "content": PROMPT},
+        {"role": "user", "content": text}
+    ],
+    temperature=0.25)
+    summary = response.choices[0].message.content
     summary_dict = {}
     for b in summary.split("\n"):
         if b.startswith("論文名"):
@@ -175,12 +168,17 @@ def send2app(text: str, slack_token: str, file: str=None) -> None:
                 )
 
 
-def notify(results: list, slack_token: str) -> None:
+def notify(results: list, slack_token: str, openai_api: str) -> None:
     star = "*"*80
     today = datetime.date.today()
     n_articles = len(results)
     text = f"{star}\n \t \t {today}\tnum of articles = {n_articles}\n{star}"
     send2app(text, slack_token)
+    if openai_api is not None:
+        client = OpenAI(api_key=openai_api)
+    else:
+        client = None
+
     for result in sorted(results, reverse=True, key=lambda x: x.score):
         ar = result.arxiv_result
         url = ar.entry_id
@@ -191,7 +189,7 @@ def notify(results: list, slack_token: str) -> None:
         if abstract[-1] == "\n>":
             abstract = abstract.rstrip("\n>")
         abstract_en = ar.summary.replace("\n", " ").replace(". ", ". \n>")
-        
+
         text = f"\n Score: `{score}`"\
                f"\n Hit keywords: `{word}`"\
                f"\n URL: {url}"\
@@ -201,11 +199,11 @@ def notify(results: list, slack_token: str) -> None:
                f"\n Original:"\
                f"\n>{abstract_en}"\
                f"\n {star}"
-        
+
         file = None
-        if openai.api_key is not None:
+        if client:
             try:
-                summary_dict = get_summary(ar)
+                summary_dict = get_summary(ar, client)
                 summary_dict["abst_jp"] = result.abst_jp
                 id = summary_dict["id"]
                 dirpath = BASE_DIR/id
@@ -248,10 +246,10 @@ def main():
                            max_results=1000,
                            sort_by = arxiv.SortCriterion.SubmittedDate).results()
     articles = list(articles)
-    openai.api_key = os.getenv("OPENAI_API") or args.openai_api
     results = search_keyword(articles, keywords, score_threshold)
     slack_token = os.getenv("SLACK_BOT_TOKEN") or args.slack_token
-    notify(results[:1], slack_token)
+    openai_api = os.getenv("OPENAI_API") or args.openai_api
+    notify(results[:1], slack_token, openai_api)
 
 
 if __name__ == "__main__":
