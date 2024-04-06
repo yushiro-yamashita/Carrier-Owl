@@ -63,15 +63,14 @@ def get_text_from_driver(driver) -> str:
     #     return None
     # text = elem.get_attribute("innerHTML")
 
-    time.sleep(5)
     try:
-        elem = driver.find_element(by=By.XPATH, value="//div[@id='target-dummydiv']")
+        elem = driver.find_element(by=By.XPATH, value='//*[@id="textareasContainer"]/div[3]/section/div[1]/d-textarea/div')
     except NoSuchElementException as e:
         print(e)
         return None
     text = elem.get_attribute("textContent")
+    print(text)
     return text
-
 
 def get_translated_text(from_lang: str, to_lang: str, from_text: str, driver) -> str:
     sleep_time = 1
@@ -104,7 +103,7 @@ def search_keyword(
         score, hit_keywords = calc_score(abstract, keywords)
         if score < score_threshold:
             continue
-        abstract_trans = get_translated_text("ja", "en", abstract, driver)
+        abstract_trans = get_translated_text("en", "ja", abstract, driver)
 
         result = Result(score=score, hit_keywords=hit_keywords, arxiv_result=article, abst_jp=abstract_trans)
         results.append(result)
