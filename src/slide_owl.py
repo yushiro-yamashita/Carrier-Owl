@@ -146,10 +146,12 @@ def parse_iop_rss(rss_url_list: list, keywords: dict, score_threshold: float, ec
         d = feedparser.parse(driver.page_source)
         for entry in d["entries"]:
             if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != yesterday:
+                print(f"{entry['title']} is updated at {entry['updated']}.")
                 continue
             abstract = entry["summary"].replace("\n", " ")
             score, hit_keywords = calc_score(abstract, keywords)
             if score < score_threshold:
+                print(f"Score of {entry['title']} is {score}.")
                 continue
             abstract_trans = get_translated_text("en", "ja", abstract, driver)
             result = Result(score=score, hit_keywords=hit_keywords, arxiv=False, res=entry, abst_jp=abstract_trans)
