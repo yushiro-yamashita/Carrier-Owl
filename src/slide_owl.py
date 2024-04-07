@@ -123,6 +123,7 @@ def ecs_login(driver, url, ecs_info):
     except:
         pass
     time.sleep(2)
+    print(driver.page_source)
 
 
 def parse_iop_rss(rss_url_list: list, keywords: dict, score_threshold: float, ecs_info: list[str, str]):
@@ -144,7 +145,7 @@ def parse_iop_rss(rss_url_list: list, keywords: dict, score_threshold: float, ec
             time.sleep(2)
 
         d = feedparser.parse(driver.page_source)
-        print(f"{len(d["entries"]} articles are found in RSS feed.")
+        print(f"{len(d['entries'])} articles are found in RSS feed.")
         for entry in d["entries"]:
             if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != yesterday:
                 print(f"{entry['title']} is updated at {entry['updated']}.")
