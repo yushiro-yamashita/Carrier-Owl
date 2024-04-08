@@ -126,6 +126,9 @@ def make_md(f, dir_path, summary_dict):
     f.write(period_newline(summary_dict["abstract"]))
     f.write("\n")
 
+    if summary_dict["pdf"] is None:
+        return
+    
     pdf = summary_dict["pdf"]
     _, _, image_list = extract_images_from_pdf(pdf, dir_path)
     images = [{"src":imgname, "pno":str(pno), "width":str(width), "height":str(height)} for imgname, pno, width, height in image_list]

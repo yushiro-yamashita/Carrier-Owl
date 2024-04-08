@@ -288,10 +288,11 @@ def notify(results: list, slack_token: str, openai_api: str) -> None:
                 pdf = f"{id}.pdf"
                 if result.arxiv:
                     result.res.download_pdf(dirpath=str(dirpath), filename=pdf)
+                    summary_dict["pdf"] = str(dirpath/pdf)
                 else:
-                    urllib.request.urlretrieve(result.res["pdf_url"], str(dirpath/pdf))
+                    print("Downloading pdf file should be done manually.")
+                    summary_dict["pdf"] = None
 
-                summary_dict["pdf"] = str(dirpath/pdf)
                 file = make_slides(dirpath, id, summary_dict)
             except Exception as e:
                 print(e)
