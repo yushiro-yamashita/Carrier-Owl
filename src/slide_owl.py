@@ -260,7 +260,7 @@ def notify(results: list, slack_token: str, openai_api: str) -> None:
         else:
             url = result.res["link"]
             title = result.res["title"].replace("\n ", "")
-            abstract_en = result.res.summary.replace("\n", " ").replace(". ", ". \n>")
+            abstract_en = result.res["summary"].replace("\n", " ").replace(". ", ". \n>")
         word = result.hit_keywords
         score = result.score
         abstract = result.abst_jp.replace("。", "。\n>")
