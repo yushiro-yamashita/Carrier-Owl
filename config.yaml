@@ -18,7 +18,7 @@ keywords:
         adjoint method: 5
 
 # 通知の閾値
-score_threshold: 5
+score_threshold: 10
 
 iop_rss_url:
  - https://iopscience-iop-org.kyoto-u.idm.oclc.org/journal/rss/0741-3335
