@@ -198,7 +198,7 @@ def get_summary(result, client):
         if b.startswith("結果"):
             summary_dict["result"] = b[3:].lstrip()
             i_result = i
-        for b in summary.split("\n")[i_result+1:]
+        for b in summary.split("\n")[i_result+1:]:
             summary_dict["terminology"].append(b)
 
     if result.arxiv:
