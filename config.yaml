@@ -16,6 +16,12 @@ keywords:
         JT-60SA: 5
         VMEC: 10
         adjoint method: 5
+        reinforcement learning: 5
+        virtual reality: 3
+        augmented reality: 3
+        merged reality: 3
+        magnetic: 3
+        
 
 # 通知の閾値
 score_threshold: 10
