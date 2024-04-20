@@ -185,6 +185,7 @@ def get_summary(result, client):
     temperature=0.25)
     summary = response.choices[0].message.content
     summary_dict = {}
+    summary_dict["terminology"] = []
     for b in summary.split("\n"):
         if b.startswith("論文名"):
             summary_dict["title_jp"] = b[4:].lstrip()
@@ -196,6 +197,8 @@ def get_summary(result, client):
             summary_dict["method"] = b[3:].lstrip()
         if b.startswith("結果"):
             summary_dict["result"] = b[3:].lstrip()
+        else:
+            summary_dict["terminology"].append(b)
 
     if result.arxiv:
         summary_dict["title"]= res.title
@@ -340,7 +343,7 @@ def main():
     results.extend(results_iop)
     slack_token = os.getenv("SLACK_BOT_TOKEN") or args.slack_token
     openai_api = os.getenv("OPENAI_API") or args.openai_api
-    notify(results[:1], slack_token, openai_api)
+    notify(results, slack_token, openai_api)
 
 
 if __name__ == "__main__":
