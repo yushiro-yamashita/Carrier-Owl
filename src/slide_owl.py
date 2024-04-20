@@ -346,7 +346,7 @@ def main():
     results.extend(results_iop)
     slack_token = os.getenv("SLACK_BOT_TOKEN") or args.slack_token
     openai_api = os.getenv("OPENAI_API") or args.openai_api
-    notify(results[:1], slack_token, openai_api)
+    notify(results, slack_token, openai_api)
 
 
 if __name__ == "__main__":
