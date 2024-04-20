@@ -123,7 +123,8 @@ def make_md(f, dir_path, summary_dict):
     f.write("\n---\n\n")
     if len(summary_dict["terminology"])>0:
         f.write(f'__用語解説__\n')
-        f.writelines(summary_dict["terminology"])
+        for l in summary_dict["terminology"]:
+            f.write(l+"\n)
         f.write("\n---\n\n")
     f.write('<!-- class: abstract -->\n')
     f.write(period_newline(summary_dict["abst_jp"]))
