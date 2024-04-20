@@ -122,7 +122,6 @@ def make_md(f, dir_path, summary_dict):
     f.write(f'__結果__\n{period_newline(summary_dict["result"])}\n\n')
     f.write("\n---\n\n")
     if len(summary_dict["terminology"])>0:
-        f.write(f'__用語解説__\n')
         for l in summary_dict["terminology"]:
             f.write(l+"\n")
         f.write("\n---\n\n")
