@@ -14,11 +14,11 @@ keywords:
         Resonant Magnetic Perturbation: 5
         Resistive Wall Mode: 5
         JT-60SA: 5
-        VMEC: 5
+        VMEC: 10
         adjoint method: 5
 
 # 通知の閾値
-score_threshold: 10
+score_threshold: 5
 
 iop_rss_url:
  - https://iopscience-iop-org.kyoto-u.idm.oclc.org/journal/rss/0741-3335
