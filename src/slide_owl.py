@@ -186,7 +186,7 @@ def get_summary(result, client):
     summary = response.choices[0].message.content
     summary_dict = {}
     summary_dict["terminology"] = []
-    for b in summary.split("\n"):
+    for i, b in enumerate(summary.split("\n")):
         if b.startswith("論文名"):
             summary_dict["title_jp"] = b[4:].lstrip()
         if b.startswith("キーワード"):
@@ -197,7 +197,8 @@ def get_summary(result, client):
             summary_dict["method"] = b[3:].lstrip()
         if b.startswith("結果"):
             summary_dict["result"] = b[3:].lstrip()
-        else:
+            i_result = i
+        for b in summary.split("\n")[i_result+1:]
             summary_dict["terminology"].append(b)
 
     if result.arxiv:
