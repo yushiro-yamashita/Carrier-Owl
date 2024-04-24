@@ -163,26 +163,26 @@ def make_md(f, dir_path, summary_dict):
             f.write("</table>\n")
         count += 1
 
-    try:
-        tables = extract_tables_from_pdf(pdf)
-        count=0
-        for table in tables:
-            if count % 4 == 0:
-                f.write("\n---\n\n")
-                f.write("<table>\n")
-            if count % 2 == 0:
-                f.write("\t<tr>\n")
-            f.write("\t\t<td>\n")
-            if table is not None:
-                f.write(table)
-            f.write("\t\t</td>\n")
-            if count % 2 == 1:
-                f.write("\t</tr>\n")
-            if count % 4 == 3:
-                f.write("</table>\n")
-            count += 1
-    except Exception as e:
-        print(e)
+    # try:
+    #     tables = extract_tables_from_pdf(pdf)
+    #     count=0
+    #     for table in tables:
+    #         if count % 4 == 0:
+    #             f.write("\n---\n\n")
+    #             f.write("<table>\n")
+    #         if count % 2 == 0:
+    #             f.write("\t<tr>\n")
+    #         f.write("\t\t<td>\n")
+    #         if table is not None:
+    #             f.write(table)
+    #         f.write("\t\t</td>\n")
+    #         if count % 2 == 1:
+    #             f.write("\t</tr>\n")
+    #         if count % 4 == 3:
+    #             f.write("</table>\n")
+    #         count += 1
+    # except Exception as e:
+    #     print(e)
 
         
 def convert_md_to_pdf(md_file):
