@@ -107,8 +107,8 @@ def extract_tables_from_pdf(fname, max_num=50):
                 tab = table.extract()
                 columns = tab[0]
                 data_rows = tab[1:]
-                table_list.append(pd.DataFrame(data_rows, columns=columns).to_html())
-                # table_list.append(pd.DataFrame(data_rows, columns=columns).to_markdown(tablefmt="grid"))
+                # table_list.append(pd.DataFrame(data_rows, columns=columns).to_html())
+                table_list.append(pd.DataFrame(data_rows, columns=columns).to_markdown(tablefmt="grid"))
     return table_list
 
 
