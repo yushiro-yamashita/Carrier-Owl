@@ -107,8 +107,8 @@ def extract_tables_from_pdf(fname, max_num=50):
                 tab = table.extract()
                 columns = tab[0]
                 data_rows = tab[1:]
-                # table_list.append(pd.DataFrame(data_rows, columns=columns).to_html())
-                table_list.append(pd.DataFrame(data_rows, columns=columns).to_markdown(tablefmt="grid"))
+                table_list.append(pd.DataFrame(data_rows, columns=columns).to_html())
+                # table_list.append(pd.DataFrame(data_rows, columns=columns).to_markdown(tablefmt="grid"))
     return table_list
 
 
@@ -169,14 +169,12 @@ def make_md(f, dir_path, summary_dict):
         for table in tables:
             if count % 4 == 0:
                 f.write("\n---\n\n")
-                if count == 0:
-                    f.write('<!-- class: images -->\n')
                 f.write("<table>\n")
             if count % 2 == 0:
                 f.write("\t<tr>\n")
             f.write("\t\t<td>\n")
             if table is not None:
-                f.write(f'\t\t\t<p><img src="{str(img["src"])}" width="{int(ratio * width)}"></p>\n')
+                f.write(table)
             f.write("\t\t</td>\n")
             if count % 2 == 1:
                 f.write("\t</tr>\n")
