@@ -229,24 +229,44 @@ def get_summary(result, client):
     return summary_dict
 
 
-def send2app(text: str, slack_token: str, file: str=None) -> None:
+def send2app(text: str, slack_token: str, file: str=None, ts: str=None) -> None:
     if slack_token is not None:
         client = WebClient(token=slack_token)
         if file is None:
-            new_message = client.chat_postMessage(
-                channel=CHANNEL_ID,
-                text=text,
-            )
+            try:
+                new_message = client.chat_postMessage(
+                    channel=CHANNEL_ID,
+                    text=text,
+                    thread_ts=ts,
+                )
+            except SlackApiError as e:
+                new_message = client.chat_postMessage(
+                    channel=CHANNEL_ID,
+                    text=text,
+                )
+            return new_message["ts"]
         else:
             print(file)
             with open(file, "rb") as f:
-                new_file = client.files_upload(
-                    channels=CHANNEL_ID,
-                    file=BytesIO(f.read()),
-                    filename=file.name,
-                    filetype="pdf",
-                    initial_comment=text,
-                )
+                try:
+                    new_file = client.files_upload(
+                        channels=CHANNEL_ID,
+                        file=BytesIO(f.read()),
+                        filename=file.name,
+                        filetype="pdf",
+                        initial_comment=text,
+                        thread_ts=ts,
+                    )
+
+                except SlackApiError as e:
+                    new_file = client.files_upload(
+                        channels=CHANNEL_ID,
+                        file=BytesIO(f.read()),
+                        filename=file.name,
+                        filetype="pdf",
+                        initial_comment=text,
+                    )
+            return None
 
 
 def notify(results: list, slack_token: str, openai_api: str) -> None:
@@ -254,7 +274,7 @@ def notify(results: list, slack_token: str, openai_api: str) -> None:
     today = datetime.date.today()
     n_articles = len(results)
     text = f"{star}\n \t \t {today}\tnum of articles = {n_articles}\n{star}"
-    send2app(text, slack_token)
+    ts = send2app(text, slack_token)
     if openai_api is not None:
         client = OpenAI(api_key=openai_api)
     else:
@@ -304,7 +324,7 @@ def notify(results: list, slack_token: str, openai_api: str) -> None:
                 file = make_slides(dirpath, id, summary_dict)
             except Exception as e:
                 print(e)
-        send2app(text, slack_token, file)
+        send2app(text, slack_token, file, ts=ts)
 
 def get_config():
     file_abs_path = os.path.abspath(__file__)
