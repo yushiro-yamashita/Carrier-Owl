@@ -37,13 +37,13 @@ class Result:
 
 
 PROMPT = """与えられた論文の要点をまとめ、以下の項目で日本語で出力せよ。それぞれの項目は最大でも180文字以内に要約せよ。
-```
+
 論文名:タイトルの日本語訳
 キーワード:この論文のキーワード
 課題:この論文が解決する課題
 手法:この論文が提案する手法
 結果:提案手法によって得られた結果
-```
+
 さらに要約内に登場する主要な専門用語について、高校生にもわかるような説明を付け加えよ。それぞれの用語について、説明の終わりにのみ改行記号を用いよ。
 """
 BASE_DIR=Path("./files")
@@ -200,6 +200,7 @@ def get_summary(result, client):
             i_result = i
     if i_result != -1:
         for b in summary.split("\n")[i_result+1:]:
+            b.replace("`", "")
             summary_dict["terminology"].append(b)
 
     if result.arxiv:
