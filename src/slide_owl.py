@@ -163,18 +163,16 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
         print(f"{len(d['entries'])} articles are found in RSS feed.")
         for entry in d["entries"]:
             driver.get(entry["link"])
-
-            entry["updated"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_online_date"]').get_attribute('content')
-            entry["updated_parsed"] = datetime.datetime.strptime(entry["updated"], "%Y/%m/%d").timetuple()
-            if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != yesterday:
-                print(f"{entry['title']} is updated at {entry['updated']}.")
-                continue
-            
             try:
+                entry["updated"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_online_date"]').get_attribute('content')
+                entry["updated_parsed"] = datetime.datetime.strptime(entry["updated"], "%Y/%m/%d").timetuple()
+                if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != yesterday:
+                    # print(f"{entry['title']} is updated at {entry['updated']}.")
+                    continue
                 abstract = driver.find_element(by=By.XPATH, value='//h2[text()="Abstract"]/following-sibling::div').text.replace("\n", " ")
-
                 entry["summary"] = abstract
                 entry["doi"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_doi"]').get_attribute('content')
+
             except Exception as e:
                 print(e)
                 continue
@@ -421,10 +419,10 @@ def main():
                            sort_by = arxiv.SortCriterion.SubmittedDate).results()
     articles = list(articles)
     results = []
-    # results_arxiv = search_keyword(driver, articles, keywords, score_threshold)
-    # results.extend(results_arxiv)
-    # results_iop = parse_iop_rss(driver, iop_rss_url, keywords, score_threshold, ecs_info=[ecs_id, ecs_pass])
-    # results.extend(results_iop)
+    results_arxiv = search_keyword(driver, articles, keywords, score_threshold)
+    results.extend(results_arxiv)
+    results_iop = parse_iop_rss(driver, iop_rss_url, keywords, score_threshold, ecs_info=[ecs_id, ecs_pass])
+    results.extend(results_iop)
     results_elsevier = parse_elsevier_rss(driver, elsevier_rss_url, keywords, score_threshold, ecs_info=[ecs_id, ecs_pass])
     results.extend(results_elsevier)
 
