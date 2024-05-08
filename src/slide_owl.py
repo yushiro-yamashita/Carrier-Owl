@@ -161,11 +161,15 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
     for i, url in enumerate(rss_url_list):
         d = feedparser.parse(url)
         print(f"{len(d['entries'])} articles are found in RSS feed.")
-        if time.strftime("%Y-%m-%d", d["updated_parsed"]) != yesterday:
-            print(f"{d['feed']['title']} is updated at {d['updated']}.")
-            continue
         for entry in d["entries"]:
             driver.get(entry["link"])
+
+            entry["updated"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_online_date"]').get_attribute('content')
+            entry["updated_parsed"] = datetime.datetime.strptime(entry["updated"], "%Y/%m/%d").timetuple()
+            if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != yesterday:
+                print(f"{d['feed']['title']} is updated at {d['updated']}.")
+                continue
+            
             try:
                 abstract = driver.find_element(by=By.XPATH, value='//h2[text()="Abstract"]/following-sibling::div').text.replace("\n", " ")
 
