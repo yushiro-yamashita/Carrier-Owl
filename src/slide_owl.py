@@ -153,12 +153,19 @@ def parse_iop_rss(driver, rss_url_list: list, keywords: dict, score_threshold: f
 
 
 
-def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_threshold: float):
+def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_threshold: float, ecs_info: list[str, str]):
     results = []
     yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
     for i, url in enumerate(rss_url_list):
-        d = feedparser.parse(url)
+        if i==0:
+            ecs_login(driver, url, ecs_info)
+        else:
+            driver.get(url)
+            time.sleep(2)
+
+        d = feedparser.parse(driver.page_source)
+        # d = feedparser.parse(url)
         print(f"{len(d['entries'])} articles are found in RSS feed.")
         if time.strftime("%Y-%m-%d", d["updated_parsed"]) != yesterday:
             print(f"{d['feed']['title']} is updated at {d['updated']}.")
@@ -408,7 +415,7 @@ def main():
     # results.extend(results_arxiv)
     # results_iop = parse_iop_rss(driver, iop_rss_url, keywords, score_threshold, ecs_info=[ecs_id, ecs_pass])
     # results.extend(results_iop)
-    results_elsevier = parse_elsevier_rss(driver, elsevier_rss_url, keywords, score_threshold)
+    results_elsevier = parse_elsevier_rss(driver, elsevier_rss_url, keywords, score_threshold, ecs_info=[ecs_id, ecs_pass])
     results.extend(results_elsevier)
 
     driver.quit()
