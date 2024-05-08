@@ -158,13 +158,14 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
     yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
     for i, url in enumerate(rss_url_list):
-        if i==0:
-            ecs_login(driver, url, ecs_info)
-        else:
-            driver.get(url)
-            time.sleep(2)
+        # if i==0:
+        #     ecs_login(driver, url, ecs_info)
+        # else:
+        #     driver.get(url)
+        #     time.sleep(2)
+        # d = feedparser.parse(driver.page_source)
 
-        d = feedparser.parse(driver.page_source)
+        d = feedparser.parse(url)
         print(f"{len(d['entries'])} articles are found in RSS feed.")
         if time.strftime("%Y-%m-%d", d["updated_parsed"]) != yesterday:
             print(f"{d['feed']['title']} is updated at {d['updated']}.")
