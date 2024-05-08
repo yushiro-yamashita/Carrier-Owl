@@ -27,6 +27,17 @@ keywords:
 score_threshold: 10
 
 iop_rss_url:
- - https://iopscience-iop-org.kyoto-u.idm.oclc.org/journal/rss/0741-3335
- - https://iopscience-iop-org.kyoto-u.idm.oclc.org/journal/rss/0029-5515
- - https://iopscience-iop-org.kyoto-u.idm.oclc.org/journal/rss/0963-0252
+ - https://iopscience-iop-org.kyoto-u.idm.oclc.org/journal/rss/0741-3335 # Plasma Physics and Controlled Fusion
+ - https://iopscience-iop-org.kyoto-u.idm.oclc.org/journal/rss/0029-5515 # Nuclear Fusion
+ - https://iopscience-iop-org.kyoto-u.idm.oclc.org/journal/rss/0963-0252 # Plasma Sources Science and Technology
+
+elsevier_rss_url:
+ - https://rss.sciencedirect.com/publication/science/00104655 # Computer Physics Communications
+ - https://rss.sciencedirect.com/publication/science/00223115 # Journal of Nuclear Materials
+ - https://rss.sciencedirect.com/publication/science/09270256 # Computational Materials Science
+ - https://rss.sciencedirect.com/publication/science/23521791 # Nuclear Materials and Energy
+ - https://rss.sciencedirect.com/publication/science/27728285 # Fundamental Plasma Physics
+ - https://rss.sciencedirect.com/publication/science/09203796 # Fusion Engineering and Design
+ - https://rss.sciencedirect.com/publication/science/05779073 # Chinese Journal of Physics
+ - https://rss.sciencedirect.com/publication/science/01491970 # Progress in Nuclear Energy
+ - https://rss.sciencedirect.com/publication/science/07437315 # Journal of Parallel and Distributed Computing

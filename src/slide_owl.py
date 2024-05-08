@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import os
+import re
 import time
 import urllib.parse
 import warnings
@@ -21,7 +22,6 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
 from pathlib import Path
 import feedparser
-import urllib.request
 import datetime
 
 # setting
@@ -31,7 +31,7 @@ warnings.filterwarnings("ignore")
 class Result:
     score: float = 0.0
     hit_keywords: list = None
-    arxiv: bool = True
+    source: type = None
     res: dict = None
     abst_jp: str = None
 
@@ -44,7 +44,7 @@ PROMPT = """与えられた論文の要点をまとめ、以下の項目で日�
 手法:この論文が提案する手法
 結果:提案手法によって得られた結果
 
-さらに要約内に登場する主要な専門用語について、高校生にもわかるような説明を付け加えよ。それぞれの用語について、説明の終わりにのみ改行記号を用いよ。
+さらに要約内に登場する主要な専門用語について、高校生にもわかるような説明を付け加えよ。日本語だけでなく、翻訳元の英語表記も添えよ。それぞれの用語について、説明の終わりにのみ改行記号を用いよ。
 """
 BASE_DIR=Path("./files")
 CHANNEL_ID = "C03KGQE0FT6"
@@ -91,11 +91,8 @@ def get_translated_text(from_lang: str, to_lang: str, from_text: str, driver) ->
 
 
 def search_keyword(
-        articles: list, keywords: dict, score_threshold: float
+        driver, articles: list, keywords: dict, score_threshold: float
         ):
-    options = webdriver.FirefoxOptions()
-    options.add_argument("--headless")
-    driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
     results = []
     for article in articles:
         abstract = article.summary.replace("\n", " ")
@@ -104,10 +101,8 @@ def search_keyword(
             continue
         abstract_trans = get_translated_text("en", "ja", abstract, driver)
 
-        result = Result(score=score, hit_keywords=hit_keywords, arxiv=True, res=article, abst_jp=abstract_trans)
+        result = Result(score=score, hit_keywords=hit_keywords, source="arxiv", res=article, abst_jp=abstract_trans)
         results.append(result)
-
-    driver.quit()
     return results
 
 
@@ -128,14 +123,7 @@ def ecs_login(driver, url, ecs_info):
     print(driver.page_source)
 
 
-def parse_iop_rss(rss_url_list: list, keywords: dict, score_threshold: float, ecs_info: list[str, str]):
-    options = webdriver.FirefoxOptions()
-    options.add_argument("-headless")
-    firefox_profile = webdriver.firefox.firefox_profile.FirefoxProfile()
-    firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
-    options.profile = firefox_profile
-    driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
-    driver.implicitly_wait(10)
+def parse_iop_rss(driver, rss_url_list: list, keywords: dict, score_threshold: float, ecs_info: list[str, str]):
     results = []
     yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
@@ -158,16 +146,50 @@ def parse_iop_rss(rss_url_list: list, keywords: dict, score_threshold: float, ec
                 print(f"Score of {entry['title']} is {score}.")
                 continue
             abstract_trans = get_translated_text("en", "ja", abstract, driver)
-            result = Result(score=score, hit_keywords=hit_keywords, arxiv=False, res=entry, abst_jp=abstract_trans)
+            result = Result(score=score, hit_keywords=hit_keywords, source="iop", res=entry, abst_jp=abstract_trans)
             results.append(result)
 
-    driver.quit()
+    return results
+
+
+
+def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_threshold: float):
+    results = []
+    yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+
+    for i, url in enumerate(rss_url_list):
+        d = feedparser.parse(url)
+        print(f"{len(d['entries'])} articles are found in RSS feed.")
+        if time.strftime("%Y-%m-%d", d["updated_parsed"]) != yesterday:
+            print(f"{d['feed']['title']} is updated at {d['updated']}.")
+            continue
+        for entry in d["entries"]:
+            entry["link"] = entry["id"]
+            driver.get(entry["link"])
+            abstract = driver.find_element(by=By.XPATH, value='//*[@id="abstracts"]//p[1]').text.replace("\n", " ")
+            try:
+                entry["pdf_url"] = driver.find_element(by=By.XPATH, value='//*[@class="ViewPDF"]//a[1]').get_attribute('href')
+            except Exception as e:
+                print(e)
+                entry["pdf_url"] = ""
+            entry["doi"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_doi"]').get_attribute('content')
+
+            score, hit_keywords = calc_score(abstract, keywords)
+            if score < score_threshold:
+                print(f"Score of {entry['title']} is {score}.")
+                continue
+            abstract_trans = get_translated_text("en", "ja", abstract, driver)
+            entry["updated"] = d["updated"]
+            entry["updated_parsed"] = d["updated_parsed"]
+            result = Result(score=score, hit_keywords=hit_keywords, source="elsevier", res=entry, abst_jp=abstract_trans)
+            results.append(result)
+
     return results
 
 
 def get_summary(result, client):
     res = result.res
-    if result.arxiv:
+    if result.source == "arxiv":
         title = res.title.replace("\n ", "")
         body = res.summary.replace("\n", " ")
     else:
@@ -203,7 +225,7 @@ def get_summary(result, client):
             b.replace("`", "")
             summary_dict["terminology"].append(b)
 
-    if result.arxiv:
+    if result.source == "arxiv":
         summary_dict["title"]= res.title
         summary_dict["id"] = res.get_short_id().replace(".", "_")
         summary_dict["date"] = res.published.strftime("%Y-%m-%d %H:%M:%S")
@@ -218,14 +240,23 @@ def get_summary(result, client):
         summary_dict["abstract"] = body
     else:
         summary_dict["title"]= res["title"]
-        summary_dict["id"] = "_".join(Path(res["id"]).parts[-2:])
-        summary_dict["date"] = time.strftime("%Y-%m-%d %H:%M:%S", res["updated_parsed"])
-        summary_dict["authors"] = res["authors"]
-        summary_dict["year"] = str(res["updated_parsed"].tm_year)
-        summary_dict["entry_id"] = str(res["link"])
-        summary_dict["pdf_url"] = res["iop_pdf"]
-        summary_dict["doi"]= res["prism_doi"]
         summary_dict["abstract"] = body
+        summary_dict["year"] = str(res["updated_parsed"].tm_year)
+        summary_dict["date"] = time.strftime("%Y-%m-%d %H:%M:%S", res["updated_parsed"])
+        summary_dict["entry_id"] = str(res["link"])
+        if result.source == "iop"
+            summary_dict["id"] = "_".join(Path(res["id"]).parts[-2:])
+            summary_dict["authors"] = res["authors"]
+            summary_dict["pdf_url"] = res["iop_pdf"]
+            summary_dict["doi"]= res["prism_doi"]
+        elif result.source == "elsevier":
+            summary_dict["id"] = Path(res["id"]).parts[-1]
+            p = r'<p>(.*?)</p>'
+            r = re.findall(p, res["summary_detail"]["value"])
+            summary_dict["authors"] = r[-1]
+            summary_dict["pdf_url"] = res["pdf_url"]
+            summary_dict["doi"]= res["doi"]
+
     return summary_dict
 
 
@@ -281,7 +312,7 @@ def notify(results: list, slack_token: str, openai_api: str) -> None:
         client = None
 
     for result in sorted(results, reverse=True, key=lambda x: x.score):
-        if result.arxiv:
+        if result.source == "arxiv":
             url = result.res.entry_id
             title = result.res.title.replace("\n ", "")
             abstract_en = result.res.summary.replace("\n", " ").replace(". ", ". \n>")
@@ -314,7 +345,7 @@ def notify(results: list, slack_token: str, openai_api: str) -> None:
                 dirpath = BASE_DIR/id
                 dirpath.mkdir(parents=True, exist_ok=True)
                 pdf = f"{id}.pdf"
-                if result.arxiv:
+                if result.source == "arxiv":
                     result.res.download_pdf(dirpath=str(dirpath), filename=pdf)
                     summary_dict["pdf"] = str(dirpath/pdf)
                 else:
@@ -349,8 +380,17 @@ def main():
     keywords = config["keywords"]
     score_threshold = float(config["score_threshold"])
     iop_rss_url = config.get("iop_rss_url", [])
+    elsevier_rss_url = config.get("elsevier_rss_url", [])
     ecs_id = os.getenv("ECS_ID") or args.ecs_id
     ecs_pass = os.getenv("ECS_PASSWORD") or args.ecs_password
+
+    options = webdriver.FirefoxOptions()
+    options.add_argument("-headless")
+    firefox_profile = webdriver.firefox.firefox_profile.FirefoxProfile()
+    firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
+    options.profile = firefox_profile
+    driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
+    driver.implicitly_wait(10)
 
     day_before_yesterday = datetime.datetime.today() - datetime.timedelta(days=2)
     day_before_yesterday_str = day_before_yesterday.strftime("%Y%m%d")
@@ -361,9 +401,16 @@ def main():
                            max_results=1000,
                            sort_by = arxiv.SortCriterion.SubmittedDate).results()
     articles = list(articles)
-    results = search_keyword(articles, keywords, score_threshold)
-    results_iop = parse_iop_rss(iop_rss_url, keywords, score_threshold, ecs_info=[ecs_id, ecs_pass])
-    results.extend(results_iop)
+    results = []
+    # results_arxiv = search_keyword(driver, articles, keywords, score_threshold)
+    # results.extend(results_arxiv)
+    # results_iop = parse_iop_rss(driver, iop_rss_url, keywords, score_threshold, ecs_info=[ecs_id, ecs_pass])
+    # results.extend(results_iop)
+    results_elsevier = parse_elsevier_rss(driver, elsevier_rss_url, keywords, score_threshold)
+    results.extend(results_elsevier)
+
+    driver.quit()
+
     slack_token = os.getenv("SLACK_BOT_TOKEN") or args.slack_token
     openai_api = os.getenv("OPENAI_API") or args.openai_api
     notify(results, slack_token, openai_api)
