@@ -165,27 +165,31 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
             time.sleep(2)
 
         d = feedparser.parse(driver.page_source)
-        # d = feedparser.parse(url)
         print(f"{len(d['entries'])} articles are found in RSS feed.")
         if time.strftime("%Y-%m-%d", d["updated_parsed"]) != yesterday:
             print(f"{d['feed']['title']} is updated at {d['updated']}.")
             continue
         for entry in d["entries"]:
-            entry["link"] = entry["id"]
             driver.get(entry["link"])
-            abstract = driver.find_element(by=By.XPATH, value='//*[@id="abstracts"]//p[1]').text.replace("\n", " ")
             try:
-                entry["pdf_url"] = driver.find_element(by=By.XPATH, value='//*[@class="ViewPDF"]//a[1]').get_attribute('href')
+                abstract = driver.find_element(by=By.XPATH, value='//*[@id="abstracts"]//p[1]').text.replace("\n", " ")
+                entry["doi"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_doi"]').get_attribute('content')
             except Exception as e:
                 print(e)
-                entry["pdf_url"] = ""
-            entry["doi"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_doi"]').get_attribute('content')
+                continue
+
+            # try:
+            #     entry["pdf_url"] = driver.find_element(by=By.XPATH, value='//*[@class="ViewPDF"]//a[1]').get_attribute('href')
+            # except Exception as e:
+            #     entry["pdf_url"] = ""
+            entry["pdf_url"] = ""
 
             score, hit_keywords = calc_score(abstract, keywords)
             if score < score_threshold:
                 print(f"Score of {entry['title']} is {score}.")
                 continue
             abstract_trans = get_translated_text("en", "ja", abstract, driver)
+            entry["link"] = entry["id"]
             entry["updated"] = d["updated"]
             entry["updated_parsed"] = d["updated_parsed"]
             result = Result(score=score, hit_keywords=hit_keywords, source="elsevier", res=entry, abst_jp=abstract_trans)
