@@ -167,7 +167,8 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
         for entry in d["entries"]:
             driver.get(entry["link"])
             try:
-                abstract = driver.find_element(by=By.XPATH, value='//*[@id="abstracts"]//p[1]').text.replace("\n", " ")
+                abstract = driver.find_element(by=By.XPATH, value='//h2[text()="Abstract"]/following-sibling::div').text.replace("\n", " ")
+
                 entry["summary"] = abstract
                 entry["doi"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_doi"]').get_attribute('content')
             except Exception as e:

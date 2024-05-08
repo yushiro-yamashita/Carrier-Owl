@@ -6,14 +6,17 @@ keywords:
         nuclear fusion: 10
         simulation: 3
         disruption: 3
+        vacuum vessel: 3
         field line tracing: 3
+        ITER: 5
+        JT-60SA: 5
+        DEMO: 5
         plasma: 5
         tokamak: 5
         eddy current: 5
         MHD equilibrium: 5
         Resonant Magnetic Perturbation: 5
         Resistive Wall Mode: 5
-        JT-60SA: 5
         VMEC: 10
         adjoint method: 5
         reinforcement learning: 5
