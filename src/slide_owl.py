@@ -156,15 +156,9 @@ def parse_iop_rss(driver, rss_url_list: list, keywords: dict, score_threshold: f
 def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_threshold: float, ecs_info: list[str, str]):
     results = []
     yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    p = r'<p>(.*?)</p>'
 
     for i, url in enumerate(rss_url_list):
-        # if i==0:
-        #     ecs_login(driver, url, ecs_info)
-        # else:
-        #     driver.get(url)
-        #     time.sleep(2)
-        # d = feedparser.parse(driver.page_source)
-
         d = feedparser.parse(url)
         print(f"{len(d['entries'])} articles are found in RSS feed.")
         if time.strftime("%Y-%m-%d", d["updated_parsed"]) != yesterday:
@@ -174,6 +168,7 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
             driver.get(entry["link"])
             try:
                 abstract = driver.find_element(by=By.XPATH, value='//*[@id="abstracts"]//p[1]').text.replace("\n", " ")
+                entry["summary"] = abstract
                 entry["doi"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_doi"]').get_attribute('content')
             except Exception as e:
                 print(e)
@@ -190,6 +185,10 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
                 print(f"Score of {entry['title']} is {score}.")
                 continue
             abstract_trans = get_translated_text("en", "ja", abstract, driver)
+            
+            r = re.findall(p, res["summary_detail"]["value"])
+            entry["authors"] = r[-1]
+
             entry["link"] = entry["id"]
             entry["updated"] = d["updated"]
             entry["updated_parsed"] = d["updated_parsed"]
@@ -256,16 +255,13 @@ def get_summary(result, client):
         summary_dict["year"] = str(res["updated_parsed"].tm_year)
         summary_dict["date"] = time.strftime("%Y-%m-%d %H:%M:%S", res["updated_parsed"])
         summary_dict["entry_id"] = str(res["link"])
+        summary_dict["authors"] = res["authors"]
         if result.source == "iop":
             summary_dict["id"] = "_".join(Path(res["id"]).parts[-2:])
-            summary_dict["authors"] = res["authors"]
             summary_dict["pdf_url"] = res["iop_pdf"]
             summary_dict["doi"]= res["prism_doi"]
         elif result.source == "elsevier":
             summary_dict["id"] = Path(res["id"]).parts[-1]
-            p = r'<p>(.*?)</p>'
-            r = re.findall(p, res["summary_detail"]["value"])
-            summary_dict["authors"] = r[-1]
             summary_dict["pdf_url"] = res["pdf_url"]
             summary_dict["doi"]= res["doi"]
         else:
@@ -330,10 +326,12 @@ def notify(results: list, slack_token: str, openai_api: str) -> None:
             url = result.res.entry_id
             title = result.res.title.replace("\n ", "")
             abstract_en = result.res.summary.replace("\n", " ").replace(". ", ". \n>")
+            authors = result.authors
         else:
             url = result.res["link"]
             title = result.res["title"].replace("\n ", "")
             abstract_en = result.res["summary"].replace("\n", " ").replace(". ", ". \n>")
+            authors = result.res["authors"]
         word = result.hit_keywords
         score = result.score
         abstract = result.abst_jp.replace("。", "。\n>")
@@ -344,6 +342,7 @@ def notify(results: list, slack_token: str, openai_api: str) -> None:
                f"\n Hit keywords: `{word}`"\
                f"\n URL: {url}"\
                f"\n Title: {title}"\
+               f"\n Authors: {authors}"\
                f"\n Abstract:"\
                f"\n>{abstract}"\
                f"\n Original:"\
