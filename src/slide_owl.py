@@ -167,7 +167,7 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
             entry["updated"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_online_date"]').get_attribute('content')
             entry["updated_parsed"] = datetime.datetime.strptime(entry["updated"], "%Y/%m/%d").timetuple()
             if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != yesterday:
-                print(f"{d['feed']['title']} is updated at {d['updated']}.")
+                print(f"{entry['title']} is updated at {entry['updated']}.")
                 continue
             
             try:
@@ -179,6 +179,7 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
                 print(e)
                 continue
 
+            ## EJDB適用後のリンクでrssのURLを記載しておき、iopと同様にログインするようにすればPDFリンクも取得できると思うが、結局規約的にPDFダウンロードは避けているため使わない
             # try:
             #     entry["pdf_url"] = driver.find_element(by=By.XPATH, value='//*[@class="ViewPDF"]//a[1]').get_attribute('href')
             # except Exception as e:
