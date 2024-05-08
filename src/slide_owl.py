@@ -244,7 +244,7 @@ def get_summary(result, client):
         summary_dict["year"] = str(res["updated_parsed"].tm_year)
         summary_dict["date"] = time.strftime("%Y-%m-%d %H:%M:%S", res["updated_parsed"])
         summary_dict["entry_id"] = str(res["link"])
-        if result.source == "iop"
+        if result.source == "iop":
             summary_dict["id"] = "_".join(Path(res["id"]).parts[-2:])
             summary_dict["authors"] = res["authors"]
             summary_dict["pdf_url"] = res["iop_pdf"]
@@ -256,6 +256,8 @@ def get_summary(result, client):
             summary_dict["authors"] = r[-1]
             summary_dict["pdf_url"] = res["pdf_url"]
             summary_dict["doi"]= res["doi"]
+        else:
+            print("Unknown source.")
 
     return summary_dict
 
