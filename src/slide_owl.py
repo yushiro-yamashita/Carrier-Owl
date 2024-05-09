@@ -326,7 +326,7 @@ def notify(results: list, slack_token: str, openai_api: str) -> None:
             url = result.res.entry_id
             title = result.res.title.replace("\n ", "")
             abstract_en = result.res.summary.replace("\n", " ").replace(". ", ". \n>")
-            authors = result.authors
+            authors = result.res.authors
         else:
             url = result.res["link"]
             title = result.res["title"].replace("\n ", "")
