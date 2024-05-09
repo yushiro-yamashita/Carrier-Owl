@@ -162,8 +162,8 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
         d = feedparser.parse(url)
         print(f"{len(d['entries'])} articles are found in RSS feed.")
         for entry in d["entries"]:
-            driver.get(entry["link"])
             try:
+                driver.get(entry["link"])
                 entry["updated"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_online_date"]').get_attribute('content')
                 entry["updated_parsed"] = datetime.datetime.strptime(entry["updated"], "%Y/%m/%d").timetuple()
                 if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != yesterday:
@@ -172,33 +172,30 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
                 abstract = driver.find_element(by=By.XPATH, value='//h2[text()="Abstract"]/following-sibling::div').text.replace("\n", " ")
                 entry["summary"] = abstract
                 entry["doi"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_doi"]').get_attribute('content')
+                ## EJDB適用後のリンクでrssのURLを記載しておき、iopと同様にログインするようにすればPDFリンクも取得できると思うが、結局規約的にPDFダウンロードは避けているため使わない
+                # try:
+                #     entry["pdf_url"] = driver.find_element(by=By.XPATH, value='//*[@class="ViewPDF"]//a[1]').get_attribute('href')
+                # except Exception as e:
+                #     entry["pdf_url"] = ""
+                entry["pdf_url"] = ""
+                score, hit_keywords = calc_score(abstract, keywords)
+                if score < score_threshold:
+                    print(f"Score of {entry['title']} is {score}.")
+                    continue
+                abstract_trans = get_translated_text("en", "ja", abstract, driver)
+                
+                r = re.findall(p, res["summary_detail"]["value"])
+                entry["authors"] = r[-1]
+                entry["link"] = entry["id"]
+                entry["updated"] = d["updated"]
+                entry["updated_parsed"] = d["updated_parsed"]
+                result = Result(score=score, hit_keywords=hit_keywords, source="elsevier", res=entry, abst_jp=abstract_trans)
+                results.append(result)
 
             except Exception as e:
                 print(e)
                 continue
-
-            ## EJDB適用後のリンクでrssのURLを記載しておき、iopと同様にログインするようにすればPDFリンクも取得できると思うが、結局規約的にPDFダウンロードは避けているため使わない
-            # try:
-            #     entry["pdf_url"] = driver.find_element(by=By.XPATH, value='//*[@class="ViewPDF"]//a[1]').get_attribute('href')
-            # except Exception as e:
-            #     entry["pdf_url"] = ""
-            entry["pdf_url"] = ""
-
-            score, hit_keywords = calc_score(abstract, keywords)
-            if score < score_threshold:
-                print(f"Score of {entry['title']} is {score}.")
-                continue
-            abstract_trans = get_translated_text("en", "ja", abstract, driver)
-            
-            r = re.findall(p, res["summary_detail"]["value"])
-            entry["authors"] = r[-1]
-
-            entry["link"] = entry["id"]
-            entry["updated"] = d["updated"]
-            entry["updated_parsed"] = d["updated_parsed"]
-            result = Result(score=score, hit_keywords=hit_keywords, source="elsevier", res=entry, abst_jp=abstract_trans)
-            results.append(result)
-
+                
     return results
 
 
