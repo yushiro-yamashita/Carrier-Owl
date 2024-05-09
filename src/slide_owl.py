@@ -184,8 +184,7 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
                     continue
                 abstract_trans = get_translated_text("en", "ja", abstract, driver)
                 
-                r = re.findall(p, res["summary_detail"]["value"])
-                entry["authors"] = r[-1]
+                entry["authors"] = re.findall(p, entry["summary_detail"]["value"])[-1]
                 entry["link"] = entry["id"]
                 entry["updated"] = d["updated"]
                 entry["updated_parsed"] = d["updated_parsed"]
