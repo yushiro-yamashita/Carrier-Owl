@@ -8,9 +8,9 @@ keywords:
         disruption: 3
         vacuum vessel: 3
         field line tracing: 3
-        ITER: 5
+        "ITER ": 5
         JT-60SA: 5
-        DEMO: 5
+        "DEMO ": 5
         plasma: 5
         tokamak: 5
         eddy current: 5
