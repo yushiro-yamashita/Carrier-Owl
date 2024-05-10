@@ -12,6 +12,7 @@ import arxiv
 from openai import OpenAI
 
 from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
 from io import BytesIO
 
 import yaml
