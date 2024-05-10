@@ -185,7 +185,7 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
                     continue
                 abstract_trans = get_translated_text("en", "ja", abstract, driver)
                 
-                entry["authors"] = re.findall(p, entry["summary_detail"]["value"])[-1]
+                entry["authors"] = re.findall(p, entry["summary_detail"]["value"])[-1].removeprefix("Author(s): ")
                 entry["link"] = entry["id"]
                 entry["updated"] = d["updated"]
                 entry["updated_parsed"] = d["updated_parsed"]
@@ -241,7 +241,7 @@ def get_summary(result, client):
         summary_dict["title"]= res.title
         summary_dict["id"] = res.get_short_id().replace(".", "_")
         summary_dict["date"] = res.published.strftime("%Y-%m-%d %H:%M:%S")
-        summary_dict["authors"] = res.authors
+        summary_dict["authors"] = ", ".join([str(author) for author in res.authors])
         summary_dict["year"] = str(res.published.year)
         summary_dict["entry_id"] = str(res.entry_id)
         summary_dict["primary_category"] = str(res.primary_category)
