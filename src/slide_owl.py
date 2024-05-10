@@ -57,7 +57,7 @@ def calc_score(abst: str, keywords: dict):
 
     for word in keywords.keys():
         score = keywords[word]
-        if word.lower() in abst.lower():
+        if (word in abst) or (not word.isupper() and word.lower() in abst.lower()):
             sum_score += score
             hit_kwd_list.append(word)
     return sum_score, hit_kwd_list
