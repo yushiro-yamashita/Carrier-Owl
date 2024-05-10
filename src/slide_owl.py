@@ -146,6 +146,7 @@ def parse_iop_rss(driver, rss_url_list: list, keywords: dict, score_threshold: f
             if score < score_threshold:
                 print(f"Score of {entry['title']} is {score}.")
                 continue
+            entry["authors"] = entry["authors"][0]["name"]
             abstract_trans = get_translated_text("en", "ja", abstract, driver)
             result = Result(score=score, hit_keywords=hit_keywords, source="iop", res=entry, abst_jp=abstract_trans)
             results.append(result)
