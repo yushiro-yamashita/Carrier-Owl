@@ -155,8 +155,7 @@ def parse_iop_rss(driver, rss_url_list: list, keywords: dict, score_threshold: f
     return results
 
 
-
-def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_threshold: float, ecs_info: list[str, str]):
+def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_threshold: float):
     results = []
     yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
     p = r'<p>(.*?)</p>'
@@ -192,6 +191,40 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
                 entry["updated"] = d["updated"]
                 entry["updated_parsed"] = d["updated_parsed"]
                 result = Result(score=score, hit_keywords=hit_keywords, source="elsevier", res=entry, abst_jp=abstract_trans)
+                results.append(result)
+
+            except Exception as e:
+                print(e)
+                continue
+                
+    return results
+
+
+def parse_cambridge_rss(rss_url_list: list, keywords: dict, score_threshold: float):
+    results = []
+    yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    p = r'<p>(.*?)</p>'
+
+    for i, url in enumerate(rss_url_list):
+        d = feedparser.parse(url)
+        print(f"{len(d['entries'])} articles are found in RSS feed.")
+        for entry in d["entries"]:
+            try:
+                if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != yesterday:
+                    # print(f"{entry['title']} is updated at {entry['updated']}.")
+                    continue
+                abstract = re.match(p, entry["summary"]).group()
+                score, hit_keywords = calc_score(abstract, keywords)
+                if score < score_threshold:
+                    print(f"Score of {entry['title']} is {score}.")
+                    continue
+                abstract_trans = get_translated_text("en", "ja", abstract, driver)
+                
+                entry["summary"] = abstract
+                entry["doi"] = entry["prism_doi"]
+                entry["pdf_url"] = ""
+                entry["authors"] = ", ".join([author["name"].replace(",", "") for author in entry["authors"]])
+                result = Result(score=score, hit_keywords=hit_keywords, source="cambridge", res=entry, abst_jp=abstract_trans)
                 results.append(result)
 
             except Exception as e:
@@ -265,6 +298,10 @@ def get_summary(result, client):
             summary_dict["doi"]= res["prism_doi"]
         elif result.source == "elsevier":
             summary_dict["id"] = Path(res["id"]).parts[-1]
+            summary_dict["pdf_url"] = res["pdf_url"]
+            summary_dict["doi"]= res["doi"]
+        elif result.source == "cambridge":
+            summary_dict["id"] = Path(res["doi"]).parts[-1]
             summary_dict["pdf_url"] = res["pdf_url"]
             summary_dict["doi"]= res["doi"]
         else:
@@ -397,6 +434,7 @@ def main():
     score_threshold = float(config["score_threshold"])
     iop_rss_url = config.get("iop_rss_url", [])
     elsevier_rss_url = config.get("elsevier_rss_url", [])
+    cambridge_rss_url = config.get("cambridge_rss_url", [])
     ecs_id = os.getenv("ECS_ID") or args.ecs_id
     ecs_pass = os.getenv("ECS_PASSWORD") or args.ecs_password
 
@@ -422,8 +460,10 @@ def main():
     results.extend(results_arxiv)
     results_iop = parse_iop_rss(driver, iop_rss_url, keywords, score_threshold, ecs_info=[ecs_id, ecs_pass])
     results.extend(results_iop)
-    results_elsevier = parse_elsevier_rss(driver, elsevier_rss_url, keywords, score_threshold, ecs_info=[ecs_id, ecs_pass])
+    results_elsevier = parse_elsevier_rss(driver, elsevier_rss_url, keywords, score_threshold)
     results.extend(results_elsevier)
+    results_cambridge = parse_cambridge_rss(cambridge_rss_url, keywords, score_threshold)
+    results.extend(results_cambridge)
 
     driver.quit()
 

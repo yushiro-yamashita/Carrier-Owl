@@ -46,3 +46,6 @@ elsevier_rss_url:
  - https://rss.sciencedirect.com/publication/science/05779073 # Chinese Journal of Physics
  - https://rss.sciencedirect.com/publication/science/01491970 # Progress in Nuclear Energy
  - https://rss.sciencedirect.com/publication/science/07437315 # Journal of Parallel and Distributed Computing
+
+cambridge_rss_url:
+ - https://www.cambridge.org/core/rss/product/id/F8F44ED0833DA6BE0A78F7639898FA08 # Journal of Plasma Physics
