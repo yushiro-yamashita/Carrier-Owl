@@ -245,7 +245,7 @@ def get_summary(result, client):
 
     text = f"title: {title}\nbody: {body}"
     response = client.chat.completions.create(
-    model="gpt-4-turbo",
+    model="gpt-4o",
     messages=[
         {"role": "system", "content": PROMPT},
         {"role": "user", "content": text}
