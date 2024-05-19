@@ -114,8 +114,11 @@ def extract_tables_from_pdf(fname, max_num=50):
 
 def make_md(f, dir_path, summary_dict):
     f.write("\n---\n\n")
-    f.write(f'# {summary_dict["title_jp"]}\n')
-    f.write(f'{summary_dict["title"]}\n')
+    if "title_jp" in summary_dict:
+        f.write(f'# {summary_dict["title_jp"]}\n')
+        f.write(f'{summary_dict["title"]}\n')
+    else:
+        f.write(f'# {summary_dict["title"]}\n')
     f.write(f'{summary_dict["authors"]}\n')
     f.write(f'[{summary_dict["year"]}] {summary_dict["keywords"]} {summary_dict["entry_id"]}\n\n') 
     f.write(f'__課題__\n{period_newline(summary_dict["problem"])}\n\n')
