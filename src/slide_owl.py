@@ -213,7 +213,10 @@ def parse_cambridge_rss(rss_url_list: list, keywords: dict, score_threshold: flo
                 if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != yesterday:
                     # print(f"{entry['title']} is updated at {entry['updated']}.")
                     continue
-                abstract = re.match(p, entry["summary"]).group()
+                if m := re.match(p, entry["summary"]):
+                    abstract = m.group()
+                else:
+                    abstract = entry["summary"]
                 score, hit_keywords = calc_score(abstract, keywords)
                 if score < score_threshold:
                     print(f"Score of {entry['title']} is {score}.")
