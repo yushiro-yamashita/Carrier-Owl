@@ -378,8 +378,9 @@ def notify(results: list, slack_token: str, openai_api: str) -> None:
         word = result.hit_keywords
         score = result.score
         abstract = result.abst_jp.replace("。", "。\n>")
-        if abstract[-1] == "\n>":
-            abstract = abstract.rstrip("\n>")
+        if len(abstract) > 0:
+            if abstract[-1] == "\n>":
+                abstract = abstract.rstrip("\n>")
 
         text = f"\n Score: `{score}`"\
                f"\n Hit keywords: `{word}`"\
