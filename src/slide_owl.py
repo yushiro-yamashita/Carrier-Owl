@@ -450,7 +450,7 @@ def main():
     options.profile = firefox_profile
     driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
     driver.implicitly_wait(10)
-    driver.set_page_load_timeout(5)
+    driver.set_page_load_timeout(3)
 
     day_before_yesterday = datetime.datetime.today() - datetime.timedelta(days=2)
     day_before_yesterday_str = day_before_yesterday.strftime("%Y%m%d")
