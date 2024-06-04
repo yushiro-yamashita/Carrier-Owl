@@ -80,6 +80,7 @@ def get_translated_text(from_lang: str, to_lang: str, from_text: str, driver) ->
 
     driver.get(url)
     driver.implicitly_wait(10)
+    driver.set_page_load_timeout(5)
 
     for i in range(30):
         time.sleep(sleep_time)
@@ -449,6 +450,7 @@ def main():
     options.profile = firefox_profile
     driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
     driver.implicitly_wait(10)
+    driver.set_page_load_timeout(5)
 
     day_before_yesterday = datetime.datetime.today() - datetime.timedelta(days=2)
     day_before_yesterday_str = day_before_yesterday.strftime("%Y%m%d")
