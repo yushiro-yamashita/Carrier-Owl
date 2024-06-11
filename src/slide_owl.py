@@ -462,14 +462,29 @@ def main():
                            sort_by = arxiv.SortCriterion.SubmittedDate).results()
     articles = list(articles)
     results = []
-    results_arxiv = search_keyword(driver, articles, keywords, score_threshold)
-    results.extend(results_arxiv)
-    results_iop = parse_iop_rss(driver, iop_rss_url, keywords, score_threshold, ecs_info=[ecs_id, ecs_pass])
-    results.extend(results_iop)
-    results_elsevier = parse_elsevier_rss(driver, elsevier_rss_url, keywords, score_threshold)
-    results.extend(results_elsevier)
-    results_cambridge = parse_cambridge_rss(cambridge_rss_url, keywords, score_threshold)
-    results.extend(results_cambridge)
+    try:
+        results_arxiv = search_keyword(driver, articles, keywords, score_threshold)
+        results.extend(results_arxiv)
+    except Exception as e:
+        print(e)
+    
+    try:
+        results_iop = parse_iop_rss(driver, iop_rss_url, keywords, score_threshold, ecs_info=[ecs_id, ecs_pass])
+        results.extend(results_iop)
+    except Exception as e:
+        print(e)
+        
+    try:
+        results_elsevier = parse_elsevier_rss(driver, elsevier_rss_url, keywords, score_threshold)
+        results.extend(results_elsevier)
+    except Exception as e:
+        print(e)
+        
+    try:
+        results_cambridge = parse_cambridge_rss(cambridge_rss_url, keywords, score_threshold)
+        results.extend(results_cambridge)
+    except Exception as e:
+        print(e)
 
     driver.quit()
 
