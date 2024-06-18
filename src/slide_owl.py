@@ -167,7 +167,11 @@ def parse_elsevier_rss(driver, rss_url_list: list, keywords: dict, score_thresho
         for entry in d["entries"]:
             try:
                 driver.get(entry["link"])
-                entry["updated"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_online_date"]').get_attribute('content')
+                try:
+                    entry["updated"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_online_date"]').get_attribute('content')
+                except:
+                    entry["updated"] = driver.find_element(by=By.XPATH, value='//meta[@name="citation_date"]').get_attribute('content')
+                        
                 entry["updated_parsed"] = datetime.datetime.strptime(entry["updated"], "%Y/%m/%d").timetuple()
                 if time.strftime("%Y-%m-%d", entry["updated_parsed"]) != yesterday:
                     # print(f"{entry['title']} is updated at {entry['updated']}.")
