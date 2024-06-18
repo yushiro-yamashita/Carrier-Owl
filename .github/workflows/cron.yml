@@ -72,8 +72,7 @@ jobs:
         
       - name: Install node_modules
         run: |
-          npm audit fix --force
-          npm ci
+          npm ci -no-audit
           
       - name: Run owl
         run: poetry run python src/slide_owl.py
