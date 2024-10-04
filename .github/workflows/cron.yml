@@ -9,7 +9,10 @@ on:
     # github actions のデフォルトの time zone が UTC なので、日本時間 - 9時間 した値を書く
     - cron:  '0 22 * * *'
   workflow_dispatch:
-  
+
+permissions:
+  actions: write
+
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -81,4 +84,12 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           ECS_ID: ${{ secrets.ECS_ID }}
           ECS_PASSWORD: ${{ secrets.ECS_PASSWORD }}
-          
+
+  cronjob-based-github-action:
+    name: Cronjob based github action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # - step 2
+      # - step n, use it as the last step
+      - uses: gautamkrishnar/keepalive-workflow@v2 # using the workflow with default settings
