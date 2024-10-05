@@ -290,7 +290,8 @@ def get_summary(result, client):
         summary_dict["primary_category"] = str(res.primary_category)
         summary_dict["categories"] = res.categories
         summary_dict["journal_ref"] = res.journal_ref
-        summary_dict["pdf_url"] = res.pdf_url
+        # summary_dict["pdf_url"] = res.pdf_url
+        summary_dict["pdf_url"] = ""
         summary_dict["doi"]= res.doi
         summary_dict["abstract"] = body
     else:
