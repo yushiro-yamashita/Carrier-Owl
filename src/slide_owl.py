@@ -459,15 +459,16 @@ def main():
 
     day_before_yesterday = datetime.datetime.today() - datetime.timedelta(days=2)
     day_before_yesterday_str = day_before_yesterday.strftime("%Y%m%d")
-    arxiv_query = f"({subject}) AND " \
-                  f"submittedDate:" \
-                  f"[{day_before_yesterday_str}000000 TO {day_before_yesterday_str}235959]"
-    articles = arxiv.Search(query=arxiv_query,
-                           max_results=1000,
-                           sort_by = arxiv.SortCriterion.SubmittedDate).results()
-    articles = list(articles)
+
     results = []
     try:
+        arxiv_query = f"({subject}) AND " \
+                      f"submittedDate:" \
+                      f"[{day_before_yesterday_str}000000 TO {day_before_yesterday_str}235959]"
+        articles = arxiv.Search(query=arxiv_query,
+                               max_results=1000,
+                               sort_by = arxiv.SortCriterion.SubmittedDate).results()
+        articles = list(articles)
         results_arxiv = search_keyword(driver, articles, keywords, score_threshold)
         results.extend(results_arxiv)
     except Exception as e:
