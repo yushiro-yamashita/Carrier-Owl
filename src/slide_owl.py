@@ -109,33 +109,13 @@ def search_keyword(
     return results
 
 
-def ecs_login(driver, url, ecs_info):
-    driver.get(url)
-    try:
-        driver.find_element(by=By.XPATH, value='//*[@id="IdButton1"]/input[3]').click()
-        driver.find_element(by=By.XPATH, value='//*[@id="username"]').send_keys(ecs_info[0])
-        driver.find_element(by=By.XPATH, value='//*[@id="password"]').send_keys(ecs_info[1])
-        driver.find_element(by=By.XPATH, value='/html/body/div/div/div/div/form/div[4]/button').click()
-        try:
-            driver.find_element(by=By.XPATH, value='//input[@type="submit"]').click()
-        except:
-            pass
-    except:
-        pass
-    time.sleep(2)
-    print(driver.page_source)
-
-
 def parse_iop_rss(driver, rss_url_list: list, keywords: dict, score_threshold: float, ecs_info: list[str, str]):
     results = []
     yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
     for i, url in enumerate(rss_url_list):
-        if i==0:
-            ecs_login(driver, url, ecs_info)
-        else:
-            driver.get(url)
-            time.sleep(2)
+        driver.get(url)
+        time.sleep(2)
 
         d = feedparser.parse(driver.page_source)
         print(f"{len(d['entries'])} articles are found in RSS feed.")
